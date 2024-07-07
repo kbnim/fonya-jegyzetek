@@ -1,0 +1,377 @@
+\chapter{Környezetfüggetlen (2-es típusú) nyelvtanok}
+
+\section{A szóprobléma kérdése}
+
+A \textit{formális nyelvek} témakörében az egyik központi kérdésünk, hogy adott $G$ grammatika és adott $u \in T^*$ szó estén teljesül-e, hogy $u \in L(G)$. Vagyis, hogy a $G$ nyelvtan által generált nyelvben benne van-e az $u$ szó. Szerencsére, a 2-es típusú nyelvtanok esetében vannak eszközeink ezen kérdésnek eldöntésére.
+
+Ez az úgynevezett \textbf{szintaxisfa}, vagy \textbf{levezetési fa}. Az elnevezés több értelmet nyer, ha felidézzük a Backus--Naur-jelölést.
+
+\begin{tcolorbox}
+	\begin{definition}[Szintaxisfa]
+		Legyen $G = (N,T,P,S) \in \mathcal{G}_2$ grammatika.
+		A $t$ nemüres fát \textbf{$G$ feletti levezetési (szintaxis) fának}
+		nevezzük, ha
+		\begin{itemize}
+			\item pontjai $T \cup N \cup \{\emptyword\}$ elemeivel vannak címkézve;
+			\item belső pontjai $N$ elemeivel vannak címkézve;
+			\item ha egy belső pont címkéje $A$, a közvetlen
+			leszármazottjainak címkéi pedig balról jobbra olvasva
+			$X_1, X_2, \dots, X_k$, akkor $A \longrightarrow X_1X_2\dots X_k \in P$.
+			\item az $\emptyword$-nal címkézett pontoknak nincs testvére.
+		\end{itemize}
+	\end{definition}
+\end{tcolorbox}
+
+\begin{tcolorbox}
+	\begin{theorem}
+		Ha adott $G$ grammatika esetén $u \in L(G)$ akkor és csak
+		akkor, ha $u$-hoz \textbf{megadható egy szintaxisfa}.
+	\end{theorem}
+\end{tcolorbox}
+
+\textbf{\textit{Megjegyzés}}. Az $u$-hoz tartozó szintaxisfa gyökere $S$ és
+a leveleit \textit{balról jobbra} összeolvasva az $u$ szót kapjuk.
+
+\begin{tcolorbox}
+	\begin{proposition}
+		Minden szintaxisfához megadható egy levezetés és fordítva.
+	\end{proposition}
+\end{tcolorbox}
+
+\begin{tcolorbox}
+	\begin{definition}[Egyértelmű nyelvtan]
+		Egy $G \in \mathcal{G}_2$ nyelvtan \textbf{egyértelmű}, ha minden $u \in L(G)$ szóhoz egyetlen szintaxisfa tartozik.
+	\end{definition}
+\end{tcolorbox}
+
+%Megelőlegezzük, hogy \textbf{a szóprobléma eldönthető az összes környezetfüggetlen nyelvtan által generált nyelvre}. Ennek eldöntésére szintén egy új automatát vezetünk be, az ún. \textbf{veremautomatá}kat. Róluk pár alfejezettek később lesz bővebben szó.
+
+\section{2-es típusú nyelvtanok normálformája}
+
+A Chomsky-hierarchia bevezetésénél kimondtuk az \textbf{$\emptyword$-mentesítés} tételét, amit 2-es és 3-as típusú nyelvtanokon elvégezhető transzformáció. 
+
+\begin{tcolorbox}
+	\begin{definition}[Chomsky-normálforma]
+		Egy $G=(N,T,P,S) \in \mathcal{G}_2$ %környezetfüggetlen
+		nyelvtant \textbf{Chomsky-normálformájú}nak
+		mondunk, ha szabályai
+		\begin{itemize}
+			\item \framebox{$\prodrule{A}{a}$} , ahol $A \in N$ és $a \in T$ vagy
+			\item \framebox{$\prodrule{A}{BC}$} alakúak, ahol $A, B, C \in N$.
+			\item \framebox{$\prodrule{S}{\emptyword}$} , de ekkor $S$ nem fordul elő egyetlen
+			szabály jobboldalán sem.
+		\end{itemize}
+	\end{definition}
+\end{tcolorbox}
+
+\begin{tcolorbox}
+	\begin{theorem}	
+		Minden \textbf{környezetfüggetlen} grammatikához
+		megkonstruálható egy vele ekvivalens \textbf{Chomsky
+		normálformájú} grammatika.
+	\end{theorem}
+\end{tcolorbox}
+
+\textbf{\textit{Megjegyzések}}.
+\begin{itemize}
+	\item A 2-es típusú grammatikák Chomsky normálformára hozásának algoritmusa nem a
+	tananyag része.\footnote{A jegyzet írása idején így szólt a tanterv (2023/2024/2. félév).}
+	\item Chomsky normálformájú grammatikákhoz megadható olyan elemző program,
+	amely $O(n^3)$ időben eldönti a szóproblémát (\textit{Cocke--Younger--Kasami-algoritmus}).
+	\item Bizonyos állítások bizonyítását elég elvégezni a normálformájú grammatikákra.
+\end{itemize}
+
+A korábban 3-as típusú nyelvtanokra megfogalmazott \textit{kis Bar-Hillel lemmá}t megfogalmazzuk környezetfüggetlen nyelvekre is.
+
+\begin{tcolorbox}
+	\begin{lemma}[Nagy Bar-Hillel lemma]
+		$\forall L \in \mathcal{L}_2$ nyelvhez $\exists p, q \in \mathbb{N}$ \textbf{nyelvfüggő
+		konstans}, hogy $\forall u \in L$, ahol $\ell(u) \geq p$ szó esetén van
+		$u$-nak olyan $u = vxwyz$ felbontása $(v, x, w, y, z \in T^*)$, amelyre
+		\begin{itemize}
+			\item $\ell(xwy) \leq q$,
+			\item $xy \neq \emptyword$,
+			\item $\forall i \in \mathbb{N} : vx^iwy^iz \in L$.
+		\end{itemize}
+	\end{lemma}
+\end{tcolorbox}
+
+\textbf{\textit{Megjegyzések}}.
+\begin{itemize}
+	\item A lemma \textbf{szükséges feltétel} környezetfüggetlen nyelvekre.
+	\item A lemmát nem bizonyítjuk, de a bizonyításhoz szükséges, hogy a
+	2-es típusú nyelvekhez létezik Chomsky-normálformájú grammatika.
+\end{itemize}
+
+\textbf{\textit{Következmény}}. Van olyan nyelv, amely nem környezetfüggetlen. Például
+\[ L := \{ \texttt{a}^n\texttt{b}^n\texttt{c}^n \mid n > 0 \} \notin \mathcal{L}_2. \]
+Tegyük fel indirekt, hogy $\exists p, q$ a Bar-Hillel lemmának megfelelő konstansok. Legyen $k > p$ és $k > q$ is. Ekkor $u = \texttt{a}^n\texttt{b}^n\texttt{c}^n$ és $\ell(u) > p$.
+
+A lemma szerint az $u$ szó $vxwyz$ alakban felbontható kell legyen, úgy, hogy $\ell(xwy) \leq q <k$ és $x$ és $y$ párhuzamosan beiterálható. De ekkor $xy$-ban nem lehet mindhárom betűből, így $vwz$ nem
+lehet eleme $L$-nek, ami ellentmondás.
+
+\section{Nyelvtan redukálása}
+
+A grammatikák transzformálása közben keletkezhetnek olyan szabályok, amelyek egyetlen szó levezetésében sem használhatóak.
+
+A grammatikában lehetnek olyan nemterminálisok, amelyekből
+
+\begin{enumerate}
+	\item nem lehet csupa nem terminálisból álló sorozatot
+	előállítani (\textit{zsákutcák});
+	\item nem érhetők el a kezdőszimbólumból.
+\end{enumerate}
+
+\begin{tcolorbox}
+	\begin{definition}[Aktív nemterminálisok]	
+		\textbf{Aktív} nemterminálisok halmaza egy adott $G=(N,T,P,S)\in \mathcal{G}_2$ grammatika esetén:
+		\[ A := \left\{ X \in N \setdivbar X \genword{G}{*} u \land u \in T^* \right\}. \] 
+	\end{definition}
+\end{tcolorbox}
+
+Inaktív (\textbf{zsákutca}) nemterminálisok: $\boxed{N \setminus A}$ .
+
+\begin{tcolorbox}
+	\begin{definition}[Elérhető nemterminálisok]	
+		\textbf{Elérhető} nemterminálisok halmaza egy adott $G=(N,T,P,S)\in \mathcal{G}_2$ grammatika esetén:
+		\[ R := \left\{ X \in N \setdivbar S \genword{G}{*} uXw \land u, w \in (T \cup N)^* \right\}. \] 
+	\end{definition}
+\end{tcolorbox}
+
+Nem elérhető nemterminálisok: $\boxed{N \setminus R}$ .
+
+\begin{tcolorbox}
+	\begin{definition}[Hasznos nemterminálisok]	
+		Egy nemterminálist \textbf{hasznos}nak mondunk, ha \textbf{aktív és elérhető}:
+		\[ X \in (A \cap R) \subseteq N. \]
+	\end{definition}
+\end{tcolorbox}
+
+\begin{tcolorbox}
+	\begin{definition}[Redukált nyelvtan]	
+		Egy környezetfüggetlen grammatika
+		\textbf{redukált}, ha minden nemterminálisa \textbf{hasznos}, azaz
+		a grammatika \textbf{zsákutcamentes és összefüggő}.
+	\end{definition}
+\end{tcolorbox}
+
+\begin{tcolorbox}
+	\begin{theorem}
+		Minden $G \in \mathcal{G}_2$ nyelvtanhoz
+		megkonstruálható egy vele ekvivalens \textbf{redukált grammatika}.
+	\end{theorem}
+\end{tcolorbox}
+
+\textbf{\textit{Bizonyítás}}. // Kidolgozni.
+
+\begin{enumerate}
+	\item Zsákutcák meghatározása és minden olyan szabály
+	elhagyása, amiben inaktív nemterminálisok szerepelnek.
+	\item Az $S$-ből nem elérhető nemterminálisokhoz tartozó
+	szabályok elhagyása, azaz a grammatika összefüggővé
+	tétele.
+\end{enumerate}
+
+\section{Veremautomaták}
+
+Elöljáróban elárultuk, hogy a szóprobléma eldönthető az összes környezetfüggetlen nyelvtan által generált nyelvre. Íme az erre vonatkozó tétel és bizonyítása.
+
+\begin{tcolorbox}
+	\begin{theorem}[Szóprobléma eldöntése]
+		Minden $G=(N,T,P,S)\in \mathcal{G}_2$ grammatika esetében eldönthető, hogy
+		egy tetszőleges $u \in T^*$ szó benne van-e a $G$
+		grammatika által generált nyelvben vagy sem.
+	\end{theorem}
+\end{tcolorbox}
+
+\textbf{\textit{Bizonyítás}}. // Kidolgozni.
+
+A szóprobléma eldönthető a környezetfüggetlen grammatikákhoz párosuló \textbf{veremautomatá}kkal, melyet az alábbi módon definiálunk.
+
+\begin{tcolorbox}
+	\begin{definition}[Veremautomata] \textbf{Veremautomatá}nak nevezzük az
+		\[ A = (Z, Q, T, \delta, z_0, q_0, F) \]
+		rendezett hetest, ahol
+		\begin{itemize}
+			\item $Z$ a verem szimbólumainak ábécéje,
+			\item $Q$ az állapotok halmaza $(0 < |Q| < \infty)$,
+			\item $T$ a bemeneti szimbólumok ábécéje,
+			\item $\delta : Z \times Q \times (T \cup \{\emptyword\}) \to \mathcal{P}(Z^* \times Q)$ leképezés az állapotátmeneti függvény, ahol $\delta$ véges részhalmazokba képez,
+			\item $z_0 \in Z$ a kezdő veremszimbólum,
+			\item $q_0 \in Q$ a kezdőállapot
+			\item $F \subseteq Q$ az elfogadóállapotok halmaza.
+		\end{itemize}
+	\end{definition}
+\end{tcolorbox}
+
+Egy lépésben mindig kell egy jelet olvasni a verem tetejéről és csak egy jelet lehet
+elérni. Az input szalagról is egy jelet lehet olvasni, de nem kötelező.
+
+Megváltoztatható az automata aktuális állapota, illetve a verem teteje. Egy lépésben
+egy egész sorozatot is beírhatunk a verembe.
+
+\textbf{\textit{Példák}}.
+\begin{itemize}
+	\item \framebox{$\delta(\#,q,a) = \{(\#a,q)\}$} \\ \textit{Jelentése}: Ha \# van a verem tetején és $a$ betű jön az inputon, akkor \textbf{tegyük be} $a$-t a verembe. Ne változtassunk az állapoton.
+	
+	\item \framebox{$\delta(\#,q,a) = \{(\emptyword,q)\}$} \\ \textit{Jelentése}: Ha \# van a verem tetején és $a$ betű jön az inputon, akkor \textbf{töröljük} \#-t a veremből. Ne változtassunk az állapoton.
+	
+	\item \framebox{$\delta(\#,q,a) = \{(\#,r)\}$} \\ \textit{Jelentése}: Ha \# van a verem tetején és $a$ betű jön az inputon, akkor \textbf{ne változtassuk a verem tartalmát}. Viszont váltsunk állapotot. 
+	
+	\item \framebox{$\delta(\#,q,\emptyword) = \{(\#bb,q)\}$} \\ \textit{Jelentése}: Ha \# van a verem tetején és nem olvasunk az inputról, akkor \textbf{tegyünk a verembe} két $b$ betűt és váltsunk állapotot is.
+\end{itemize}
+
+Ahogyan azt a véges automatáknál is tapasztalhattuk, létezik az állapotátmeneteknek egy alternatív jelölése, mely követi azt a konvenciót, ahogyan a nyelvtani szabályokat írjuk fel.
+
+\begin{itemize}
+	\item Ha $\delta(z,q,a) = \{(w_1,r_1),\dots,(w_k,r_k)\}$ $(k \in \mathbb{N}^+)$ , akkor ezt a leképezést a következő szabályhalmazzal is jelölhetjük:
+	\[ \prodrule{zqa}{w_i r_i} ~~~~ i \in [1 \dotdot k]. \]
+	\item Ha $\delta(z,q,\emptyword) = \{(w_1,r_1),\dots, (w_k,r_k)\}$ $(k \in \mathbb{N}^+)$, akkor ezt a leképezést a következő szabályhalmazzal is jelölhetjük:
+	\[ \prodrule{zq}{w_i r_i} ~~~~ i \in [1 \dotdot k]. \]
+\end{itemize}
+
+Tehát a szabályok bal oldala $ZQT$ vagy $ZQ$ alakú és a jobboldala $Z^*Q$ alakú.
+
+Ahogyan a véges automatáknál, itt is értelmezzük a \textbf{konfiguráció} fogalmát -- természetesen a megfelelő módosításokkal.
+
+\begin{tcolorbox}
+	\begin{definition}[Konfiguráció]
+		Legyen $A = (Z, Q, T, \delta, z_0, q_0, F)$ egy veremautomata és
+		legyen $\alpha \in Z^*QT^*$.
+		Azt mondjuk $\alpha$ az $A$ veremautomata egy \textbf{konfigurációja}.
+	\end{definition}
+\end{tcolorbox}
+
+Szavakban: a konfiguráció a veremautomata egy pillanatnyi állapotát írja le.
+
+Hasonlóan, a redukciót fogalmát is értelmezzük. Ahogy azt a véges automatáknál is tapasztalhattuk, a ``sima'' redukció magába foglalja a közvetett redukciót, így a kettőt nem szoktuk megkülönböztetni.
+
+\begin{tcolorbox}
+	\begin{definition}[Közvetlen redukció]
+		Legyen $A = (Z, Q, T, \delta, z_0, q_0, F)$ egy veremautomata és
+		legyen $\alpha, \beta \in Z^*QT^*$ konfigurációk.
+		
+		Azt mondjuk, hogy az A veremautomata az $\alpha$ konfigurációt
+		a $\beta$ konfigurációra \textbf{redukálja közvetlenül}, ha
+		\[ \exists z \in Z, p, q \in Q, a \in T\cup\{\emptyword\}, r,u \in Z^*, w \in T^*, \text{ hogy } \]
+		\begin{itemize}
+			\item \framebox{$\prodrule{zqa}{up}$} egy szabály $\delta$-ban,
+			\item $\alpha = r\textbf{zqa}w$ és $\beta = r\textbf{up}w$.
+		\end{itemize}
+		~
+		
+		Jele: \framebox{$\alpha \genword{A}{} \beta$} .
+	\end{definition}
+\end{tcolorbox}
+
+A vastag betűk továbbra is arra szolgálnak, hogy szemléletesebbé váljon a helyettesítés és nem vektorokat jelentenek.
+
+\begin{tcolorbox}
+	\begin{definition}[Redukció]
+		Legyen $A = (Z, Q, T, \delta, z_0, q_0, F)$ egy veremautomata és
+		legyenek $\alpha, \beta \in Z^*QT^*$ konfigurációk.
+		
+		Azt mondjuk, hogy az A veremautomata az $\alpha$ konfigurációt
+		a $\beta$ konfigurációra \textbf{redukálja közvetetten}, 
+		\begin{itemize}
+			\item ha vagy $\alpha = \beta$,
+			\item vagy ha $\alpha \neq \beta$, akkor $\exists \alpha_1 \dots \alpha_k$ $(k \in \mathbb{N}^+)$ konfiguráció sorozat, hogy $\alpha_1 = \alpha$ és $\alpha_k = \beta$ és $\forall i \in [1 \dotdot k-1] : \alpha_i \genword{A}{} \alpha_{i+1}$.
+		\end{itemize}
+		
+		Jele: \framebox{$\alpha \genword{A}{*} \beta$} .
+	\end{definition}
+\end{tcolorbox}
+
+A véges automatákkal szemben itt kétféle ``nyelvet'' értelmezünk attól függően, hogy megen-gedjük-e, hogy a verem lehet-e üres.
+
+\begin{tcolorbox}
+	\begin{definition}[Elfogadó állapottal felismerhető nyelv]
+		\[ L(A) := \left\{  u \in T^* \setdivbar \exists z_0 q_0 u \genword{A}{*} wr \land r \in F \land w \in Z^* \right\} \]
+	\end{definition}
+\end{tcolorbox}
+
+Ez azt jelenti, hogy van olyan működése a veremautomatának, hogy
+kezdő konfigurációból indulva végig olvasva az inputot elfogadóállapotba jut.
+
+\begin{tcolorbox}
+	\begin{definition}[Üres veremmel felismerhető nyelv]
+		\[ N(A) := \left\{  u \in T^* \setdivbar \exists z_0 q_0 u \genword{A}{*} r \land r \in F \right\} \]
+	\end{definition}
+\end{tcolorbox}
+
+Ez azt jelenti, hogy van olyan működése a veremautomatának, hogy
+kezdő konfigurációból indulva végig olvasva az inputot teljesen kiüríti a vermet.
+
+A veremautomaták \textbf{determinisztikusságát} is vizsgálhatjuk.
+
+\begin{tcolorbox}
+	\begin{definition}[Determinisztikus veremautomata]
+		Egy veremautomatát \textbf{determinisztikus}nak mondunk, ha
+		$\forall \alpha \in Z^+QT^*$ konfiguráció esetén egyetlen
+		konfiguráció vezethető le közvetlenül $\alpha$-ból.
+	\end{definition}
+\end{tcolorbox}
+
+Ez azt jelenti, hogy nincs két olyan szabály, amelynek azonos a
+bal oldala, valamint, ha $zq$ egy bal oldal, akkor nincs $zqa$ bal oldal egyetlen
+terminálisra sem.
+
+A determinisztikus veremautomatával felismerhető nyelvek családja szűkebb, mint a nemdeter-
+minisztikussal felismerhető nyelvek családja. Például a szimmetrikus szavak nem ismerhetők fel
+determinisztikus veremautomatával.
+
+\begin{tcolorbox}
+	\begin{lemma}
+		Bármely $A$ veremautomatához megadható $A'$
+		veremautomata úgy, hogy $N(A')=L(A)$.
+	\end{lemma}
+\end{tcolorbox}
+
+\begin{tcolorbox}
+	\begin{lemma}
+		Bármely $A$ veremautomatához megadható $A'$
+		veremautomata úgy, hogy $L(A')=N(A)$.
+	\end{lemma}
+\end{tcolorbox}
+
+\textbf{\textit{Megjegyzés}}. Ez azt jelenti, hogy ha egy nyelvhez építhető elfogadó
+állapottal felismerő veremautomata, akkor építhető üres veremmel felismerhető
+veremautomata és fordítva.
+
+\begin{tcolorbox}
+	\begin{theorem}
+		Minden $L \in \mathcal{L}_2$ nyelvhez megadható egy $A$ veremautomata
+		úgy, hogy
+		\[ L = N(A), \text{ ~ azaz ~ } \mathcal{L}_2 \subseteq \mathcal{L}_{1V}. \]
+	\end{theorem}
+\end{tcolorbox}
+
+\textbf{\textit{Bizonyítás}}. // Kidolgozni.
+
+\begin{tcolorbox}
+	\begin{theorem}
+		Minden $A$ veremautomatához megadható egy
+		$G \in \mathcal{G}_2$ nyelvtan úgy, hogy
+		\[ L(G) = N(A), \text{ ~ azaz ~ } \mathcal{L}_{1V} \subseteq \mathcal{L}_{2}. \]
+	\end{theorem}
+\end{tcolorbox}
+
+A fordított tételt nem bizonyítjuk.
+
+\iffalse
+
+\section{Feladatok}
+
+\subsection{Környezetfüggetlen nyelvek normálformára hozása}
+
+\begin{enumerate}
+	\item tartalom...
+\end{enumerate}
+
+\subsection{Veremautomaták}
+
+\begin{enumerate}
+	\item tartalom...
+\end{enumerate}
+
+\fi

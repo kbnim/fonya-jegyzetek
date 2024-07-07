@@ -1,0 +1,502 @@
+\chapter{Az Assembly alapjai}
+
+Az \textbf{Assembly} egy \textit{alacsony szintű programozási nyelv}, amely segít áthidalni a masag szintű nyelvek és a gépi kód közti hatalmas ``szakadékot''. Valójában a gépi kódnak egy ember számára olvashatóbb változatáról van szól, ami a rejtélyes hexadecimális számok helyett korlátozott számú rövid, tömör nevű \textbf{műveltek}et, valamint \textbf{regiszterek}et használ. Megengedi a programozó számára, hogy a memóriacímek azonosítására \textbf{címkék}et használjunk.
+
+Az Assembly nem egy egységes nyelv, hanem inkább egy nyelvcsalád, aminek a nyelvei architektúránként eltér. Azonban vannak közös jellemzői. Fordítóprogramját \textbf{Assembler}nek nevezzük. A tanulmányai folyamán a \textbf{32-bites}, x\textbf{86-os architektúrá}jú, NASM szintaxisú Assemblyvel fogunk foglalkozni.
+
+\begin{figure}[h]
+	\centering
+\begin{minipage}{0.05\linewidth}
+	~
+\end{minipage}
+\begin{minipage}{0.25\linewidth}
+	\begin{lstlisting}[style=cppstyle]
+int sum = 0;
+for (int i = 0; 
+	 i < len; 
+	 ++i)
+{
+	sum += t[i];
+}
+	\end{lstlisting}
+\end{minipage}
+\begin{minipage}{0.03\linewidth}
+	~
+\end{minipage}
+\begin{minipage}{0.25\linewidth}
+	\begin{lstlisting}[style=asmstyle]
+mov ecx,0
+mov eax,0
+eleje:
+cmp ecx,10
+jge vege
+add eax,[ebx+4*ecx]
+inc ecx
+jmp eleje
+vege:
+	\end{lstlisting}
+\end{minipage}
+\begin{minipage}{0.03\linewidth}
+	~
+\end{minipage}
+\begin{minipage}{0.25\linewidth}
+	\begin{lstlisting}[style=machinestyle]
+B9 00 00 00 00
+B8 00 00 00 00
+81 F9 0A 00 00 00
+7D 06
+03 04 8B
+41
+EB F2
+	\end{lstlisting}
+\end{minipage}
+\caption{C++ kód, Assembly kód és gépi kód}
+\end{figure}
+
+\begin{figure}[h]
+	\centering
+	\begin{tikzpicture}
+		% High-level source code
+		\node[block, minimum width=5cm, minimum height=1.5cm] (highlevel) at (0,0) {};
+		\node[align=center] at (highlevel) {magas-szintű\\forráskód};
+		
+		% Compiler
+		\node[block, minimum width=5cm, minimum height=1cm] (compiler) at (0,-2.0) {};
+		\node[align=center] at (compiler) {Assembly kód};
+		
+		% Assembly source code
+		\node[block, minimum width=5cm, minimum height=1cm] (assembly) at (0,-4) {};
+		\node[align=center] at (assembly) {gépi kód};
+		
+		% Arrows
+		\draw[->, thick] (highlevel.south) -- (compiler.north) node[midway, right] {compiler};
+		\draw[->, thick] (compiler.south) -- (assembly.north) node[midway, right] {assembler};
+	\end{tikzpicture}
+	\caption{A forráskód állapotának szakaszai}
+\end{figure}
+
+\newpage
+
+\section{Adattárolás}
+
+A számítógépen alapvetően háromféleképpen tárolhatjuk az adatainkat.
+
+Léteznek a processzorban a \framebox{\textbf{regiszter}ek} , amik nagyon \textbf{gyorsak}, bár \textbf{kis méretű} adatok tárolására képesek. Ezt a kapacitást az adott architektúra határozza meg, így egy \textbf{32-bites processzoron 1 regiszter 32 bitet} (= 4 bájtot) tárol.\footnote{Vagy általánosan $n$-bites processzorban $n$-bitesek a regiszterek, ahol $n\in \mathbb{N}^+$ 2 hatványa.} Azon aktuális adatokat tároljuk el bennük, melyekkel \textbf{műveleteket akarunk végezni} (\textit{hatékonyan}).
+
+A \framebox{\textbf{memória}} nevezhető az ``arany középútnak'', ugyanis \textbf{közepesen gyors} és \textbf{közepes a tárkapacitása}. Praktikus a programkód és a változók tárolására. A statikus memória, a \textbf{stack} és a \textbf{heap} is ezen helyezkedik el. A stack a program futásidejű, veremszerkezetű memóriája. A heapről sajnos nem lesz szó a tantárgy keretein belül.
+
+És végül, de nem utolsó sorban, említésre méltóak a \framebox{\textbf{háttértárak}} . Ezek összehasonlítva \textbf{lassú}ak, cserébe \textbf{óriási tárkapacitás}sal rendelkeznek.
+
+\subsection{Regiszterek}
+
+32-bites architektúrán a regiszterek nevei \texttt{e}-vel kezdődnek.
+
+\begin{figure}[h]
+	\centering
+	\begin{tabular}{|l|l|}
+		\hline\hline
+		\multicolumn{2}{|c|}{\textbf{Általános célú regiszterek}} \\
+		\hline
+		\makecell[l]{\texttt{eax}, \texttt{ebx}, \\ \texttt{ecx}, \texttt{edx}, \\ \texttt{esi}, \texttt{edi}} &  \makecell[l]{Egymással felcserélhetően használhatók (többnyire). \\
+		Néhány \textit{konvenció}, ha C függvények hívásához használjuk őket. \\
+		-- A függvény csak az \texttt{eax}, \texttt{ecx} és \texttt{edx} regisztereket hagyja \\
+		~~ változatlanul, a többit ``elronthatja''. \\
+		-- A visszatérési érték az \texttt{eax} regiszterbe kerül.
+		}	\\
+		\hline\hline
+		\multicolumn{2}{|c|}{\textbf{Veremmel kapcsolatos regiszterek}} \\
+		\hline
+		\texttt{esp} & \textit{Stack pointe}r, a futási idejű verem tetejét mutatja. \\
+		\hline
+		\texttt{ebp} & \makecell[l]{\textit{Base pointer}, az éppen aktív eljáráshoz/függvényhez \\ tartozó adatokra mutat a veremben.} \\
+		\hline\hline
+		\multicolumn{2}{|c|}{\textbf{Egyéb regiszterek}} \\
+		\hline
+		\texttt{eip} & \textit{Instruction pointer}, a következő végrehajtandó utasításra mutat. \\
+		\hline
+		\texttt{eflags} & \makecell[l]{Jelzőbitek gyűjteménye, pl. ``az előző aritmetikai utasítás \\ eredménye nulla volt-e?''.} \\
+		\hline
+	\end{tabular}
+	\caption{Regiszterek csoportosítása}
+\end{figure}
+
+Az \textit{egyéb regisztereket} \textbf{nem érjük el közvetlenül}, egyes utasítások olvassák/írják őket (pl. a \texttt{cmp} a \texttt{eflags}-et vagy a \texttt{call} a \texttt{eip}-t).
+
+A regiszterek szerkezete a következő. Az általános célú regiszterek (pl. az \texttt{eax}, \texttt{ebx}, \texttt{ecx}, \texttt{edx}) feloszhatók alsóbb szeletekre, akár több szinten is. Így lesz egy 16-bites \texttt{ax} (a 0.-től a 15. bitig) és egy szintén 16-bites, ám név nélküli szelete (a 16.-tól a 31. bitjéig). Az \texttt{ax} tovább osztható \texttt{al}-re és \texttt{ah}-ra (8-8 bitesek, a \textit{low half} és \textit{high half} elnevezésből). Az \texttt{eax}, \texttt{ax}, \texttt{al} mind egy-egy regiszter, de \textbf{nem függetlenek egymástól}. Ugyanis ha az \texttt{al} megváltozik, akkor az \texttt{ax} és az \texttt{eax} is vele változik.
+
+\begin{figure}[h]
+	\centering
+	\begin{tikzpicture}
+		\node[block, minimum width=12cm, minimum height=1cm] (eax) {\texttt{eax} (32 bit)};
+		\node[block, minimum width=6cm, minimum height=1cm] at (3,-1) {\texttt{ax} (16 bit)};
+		\node[selection, minimum width=6cm, minimum height=1cm] at (-3,-1) {(\textit{16 bit})};
+		\node[block, minimum width=3cm, minimum height=1cm] at (4.5,-2) {\texttt{al} (8 bit)};
+		\node[block, minimum width=3cm, minimum height=1cm] at (1.5,-2) {\texttt{ah} (8 bit)};
+		
+		\draw[-] (6, -3)  -- (6, 0) {};
+		\draw[-] (-6, -3) -- (-6, 0) {};
+		
+		\node at (6, -3.2)  {0. bit};
+		\node at (-6, -3.2) {31. bit};
+	\end{tikzpicture}
+	\caption{Az \texttt{eax}, \texttt{ebx}, \texttt{ecx}, \texttt{edx} szerkezete}
+\end{figure}
+
+Más regiszterek (\texttt{esp}, \texttt{esi}, \texttt{edi}, \texttt{ebp}, \texttt{eip}) is feloszhtatók ugyan kevesebb, de hasonlóan ``nevezetes szeletekre'', pl. \texttt{esp} (32-bit) -- \texttt{sp} (alsó 16 bit).
+
+\begin{figure}[h]
+	\centering
+	\begin{tikzpicture}
+		\node[block, minimum width=12cm, minimum height=1cm] (esp) {\texttt{esp} (32 bit)};
+		\node[block, minimum width=6cm, minimum height=1cm] at (3,-1) {\texttt{sp} (16 bit)};
+		\node[selection, minimum width=6cm, minimum height=1cm] at (-3,-1) {(\textit{16 bit})};
+		
+		\draw[-] (6, -2)  -- (6, 0) {};
+		\draw[-] (-6, -2) -- (-6, 0) {};
+		
+		\node at (6, -2.2)  {0. bit};
+		\node at (-6, -2.2) {31. bit};
+	\end{tikzpicture}
+	\caption{Az \texttt{esp}, \texttt{esi}, \texttt{edi}, \texttt{ebp}, \texttt{eip} szerkezete}
+\end{figure}
+
+
+\subsection{Címkék}
+
+A \textbf{címkék} arra szolgálnak, hogy az egyes memóriacímekre kényelmesebben tudjunk hivatkozni. Önmagában nem tárolnak sem típusinformációt, sem a változó méretét. Az utóbbiról kifejezetten fontos, hogy gondoskodjunk, ugyanis csak az alapján képes eldönteni a program, hogy az adott memóriacímtől kezdve hány bájtot olvasson be. Ha belegondolunk, ez hasonlít arra, ahogyan a C-ben a tömbök, pointerek működnek.
+
+\begin{lstlisting}[style=asmstyle, caption={Assembly program. A forráskód kiterjesztése \texttt{*.asm}}]
+global main		; global label used to denote the entry point of the program
+extern <label>  ; label is declared but defined elsewhere (externally)
+
+; uninitialised variables
+section .bss
+a: resd 1    ; 1x4 bytes reserved at 'a'
+b: resw 1    ; 1x2 bytes reserved at 'b'
+c: resb 256  ; 256x1 bytes reserved at 'c' (i.e. character array)
+
+; initialised variables
+section .data
+d: dd 42      ; 1x4 bytes defined as '42' at 'd'
+e: dw 1,2,3,4 ; 4x2 bytes defined as '1,2,3,4' at 'e' (array)
+f: db 'a'     ; 1x1 bytes defined as 'a' (ASCII) at 'f'
+
+; source code starts here
+section .text
+main:
+	; machine instructions ...
+\end{lstlisting}
+
+\begin{itemize}
+	\item \asmexample{global main} : Ebben a fájlban definiáljuk a ``main'' címkét, és szeretnénk, hogy globálisan látható
+	legyen.
+	\item \asmexample{extern <label>} : A \texttt{<label>} címke máshol van definiálva, de itt
+	szeretnénk használni.
+	\item \asmexample{section .bss} : Kezdőérték nélküli memóriaterület (``\textit{block starting symbol}''). \\
+	A rövidítések jelentése: \texttt{res} $\longrightarrow$ ``\textit{reserve}''.
+	\begin{flalign*}
+		\texttt{res} \begin{cases}
+			\texttt{b} \longrightarrow \text{``\textit{byte}''} & = 1 ~ \text{bájt}\\
+			\texttt{w} \longrightarrow \text{``\textit{word}''} & = 2 ~ \text{bájt} \\
+			\texttt{d} \longrightarrow \text{``\textit{double}''} & = 4 ~ \text{bájt}.
+		\end{cases}
+	\end{flalign*}
+	\item \asmexample{section .data} : Kezdőértékkel rendelkező memóriaterület. \\
+	A rövidítések jelentése: \texttt{d} $\longrightarrow$ ``\textit{define}''.
+	\begin{flalign*}
+		\texttt{d} \begin{cases}
+			\texttt{b} \longrightarrow \text{``\textit{byte}''} & = 1 ~ \text{bájt}\\
+			\texttt{w} \longrightarrow \text{``\textit{word}''} & = 2 ~ \text{bájt} \\
+			\texttt{d} \longrightarrow \text{``\textit{double}''} & = 4 ~ \text{bájt}.
+		\end{cases}
+	\end{flalign*}
+	\item \asmexample{section .text} : Itt kezdődik a programkód, az utasítások sorozata.
+	\begin{itemize}
+		\item Minden utasításnak lehet címkéje, de nem kötelező.
+		Lehet csak címkét tartalmazó sor is.
+		\item Önálló assembly programoknál a program belépési pontja a \texttt{\_start} címke,
+		de megírhatjuk egy C program main függvényét is, ekkor \texttt{main} címkét
+		használunk.
+		\item Az utasításoknak van neve (mnemonikja) és operandusai.
+		\item Megjegyzések: a \texttt{;} karaktertől a sor végéig.
+	\end{itemize}
+	\item \asmexample{main:} : Main címke; itt kezdődik a program ‘main’ függvénye.
+\end{itemize}
+
+A memóriahivatkozás címkékkel a következőképp történik:
+\[ \texttt{<size> [<label>]}, \] ahol a \texttt{<size>} lehet \texttt{byte} (1 bájt), \texttt{word} (2 bájt) vagy \texttt{dword} (4 bájt), a \texttt{<label>} meg egy címke. Fontos, hogy ugyanolyan mérettel ``paraméterezzük fel'', amilyennek deklaráltuk.
+
+A kódban az alábbi módon történne a memóriahivatkozás:
+\[ \texttt{dword [a]}, ~~~~~ \texttt{word [b]}, ~~~~~ \texttt{byte [c]} ~~ \text{(a tömb első eleme)}. \]
+A hivatkozásba írhatók regiszterekből, címkékből és számliterálokból álló egyes kifejezések, pl.:
+\[ \texttt{dword [a+4*ecx]} ~~ \text{(az \texttt{a} tömb 4. eleme, ha 4 bájtosak az egyes elemek)}. \]
+
+\pagebreak
+
+\section{Utasítások, műveletek}
+
+Először általánosságokban beszélünk az Assembly utasításairól, utána csoportonként átnézzük a specifikusabb részleteket.
+
+Ahogy azt megfigyelhettük, az Assembly utasításai \textbf{prefix jelölés}t használnak. Ez jó, mert a fordítók hatékonyan fel tudják dolgozni (lásd \textit{Algoritmusok és adatszerkezetek I.}). Egy utasítás felvehet 0, 1 vagy 2 paramétert.
+
+A kétparaméteres utasítások szerkezete a következő:
+\[ \texttt{instruction <destination> <source>}. \]
+
+Értelemszerűen az \texttt{instruction} jelöli az utasítást. A \texttt{<destination>} lehet regiszter vagy memóriahivatkozás, míg a \texttt{<source>} lehet regiszter, memóriahivatkozás vagy literál. 
+
+\textbf{Legfeljebb az egyik lehet memóriahivatkozás!}
+
+Továbbá biztosítanunk kell a megfelelő \textbf{offset}et, azaz \textbf{memóriahivatkozásnál meg kell adnunk az olvasandó méretet }a fent bemutatott módon (\texttt{byte}, \texttt{word}, \texttt{dword}). Ha valamelyik operandus regiszter, akkor abból kiderül, így elhagyható.
+
+A művelet \textbf{végeredménye a \texttt{<destination>} által jelölt memóriacímbe lesz írva}.
+
+\begin{lstlisting}[style=asmstyle, caption={Helyes paraméterezés}]
+; correct
+mov eax,0   ; one of them is a register, the size is evident
+mov bx,ax   ; the sizes of the two registers are equal
+mov [lab1], al ; one of them is a register, the size is evident
+mov dword [lab2], 987 ; the size of the label needs to be specified
+mov ebx, [lab3] ; one of them is a register, the size is evident
+\end{lstlisting}
+
+\begin{lstlisting}[style=asmstyle, caption={Helytelen paraméterezés}]
+; incorrect
+mov byte [lab4], byte [lab5] ; two labels are not allowed
+mov al, ax ; the sizes of the two registers are NOT the same
+\end{lstlisting}
+
+Egyparaméteres utasításoknál a végeredmény az egyetlen paraméter memóriacímében lesz elhelyezve:
+\[ \texttt{instruction <parameter>}. \]
+A \texttt{<parameter>} operandus lehet regiszter vagy memóriahivatkozás.
+
+\subsection{Adatmozgató utasítások}
+
+Utasítás: \texttt{mov}. A mozgatás valójában másolást jelent: a ``honnan'' nem változik meg.
+
+\subsection{Aritmetikai utasítások}
+
+Kétparaméteres műveletek: \texttt{add} (összeadás), \texttt{sub} (kivonás).
+
+Egyparaméteres műveletek: \texttt{inc} (inkrementálás), \texttt{dec} (dekrementálás).
+
+A szorzás (\texttt{mul}) és osztás (\texttt{div}) igs egyparaméteres műveletek, azonban a működésük nem teljesen intuitív.
+
+A szorzás összeszorzza az \texttt{eax} és a paraméterül kapott memóriacím tartalmát. Az eredmény az \texttt{eax}-be kerül, azonban túlcsoldulás esetén a további bitek az \texttt{edx}-ben lesznek rögzítve.
+
+\begin{lstlisting}[style=asmstyle]
+mov eax, 5      ; Load 5 into eax
+mov ebx, 6      ; Load 6 into ebx
+mul ebx         ; Multiply eax by ebx (5 * 6 = 30)
+; After this, eax = 30 and edx = 0 because the result fits in 32 bits
+\end{lstlisting}
+
+A \texttt{div} is hasonló elvet követ -- ott csupán nem a túlcsordulás esete áll fenn, hanem az osztási maradéké. Ez az, amit az \texttt{edx}-ben eltárol.
+
+\begin{lstlisting}[style=asmstyle]
+mov eax, 30     ; Load 30 into eax
+mov edx, 0      ; Clear edx
+mov ecx, 4      ; Load 4 into ecx
+div ecx         ; Divide edx:eax by ecx (30 / 4)
+; After this, eax = 7 (quotient), edx = 2 (remainder)
+\end{lstlisting}
+
+\textbf{\textit{Megjegyzés}}. Felhívjuk a figyelmet, hogy a \texttt{mul} és \texttt{div} előjel nélküli egész számoknak tekinti az operandusait. Előjeles számok esetén \texttt{imul} és \texttt{idiv} használandó.
+
+\subsection{Bitműveletek}
+
+Kétparaméteres műveletek: \texttt{and}, \texttt{or}, \texttt{xor}.
+
+Egyparaméteres műveletek: \texttt{not}.
+
+\subsection{Ugróutasítások}
+
+Módosíthatják azon regiszterek tartalmát (\texttt{eip}\footnote{A következő végrehajtandó utasításra mutat.}, \texttt{eflags}\footnote{Jelzőbitek gyűjteménye, pl. ``az előző aritmetikai utasítás eredménye nulla volt-e?''.}), amihez amúgy nincs közvetlen hozzáférésünk.
+
+\subsubsection{Feltétel nélküli ugrás}
+
+Egyparaméteres utasítások: \texttt{jmp <label>}.\footnote{Megfeleltethető ``\textit{az átkos}'' \texttt{goto} utasításnak.} Módosítja az \texttt{eip}-t.%Általában címkékkel szoktuk felparaméterezni.
+
+// Ábra
+
+\subsubsection{Feltételes ugrások}
+
+Kétparaméteres utasítások: \texttt{cmp <mit> <mivel>} (\textit{compare}).
+\begin{enumerate}
+	\item A \texttt{cmp} utasítás kivonást végez, de nem tárolja el az eredményt, hanem annak előjele alapján jelzőbiteket állít át az \texttt{eflags} regiszterben.
+	\item Ha a kivonás eredménye 0 (azaz az összehasonlított értékek egyenlők), akkor a \textbf{zero flag} 1 lesz, különben 0.
+\end{enumerate}
+
+Egyparaméteres utasítások: \texttt{je} (\textit{jump if equal}), \texttt{jne} (\textit{jump if not equal}), \texttt{jb} (\textit{below}) = \texttt{jnae}, \texttt{ja} (\textit{above}) = \texttt{jnbe}, \texttt{jnb} = \texttt{jae}, \texttt{jna} = \texttt{jbe}. 
+\begin{enumerate}
+	\item A feltételes ugró utasítások a jelzőbiteket figyelik.
+	\item A \texttt{je} akkor ugrik, ha a \textbf{zero flag} 1, egyébként a következő utasításra kerül a vezérlés.
+\end{enumerate}
+
+\textbf{\textit{Megjegyzés}}. Ezek előjel nélküli egész számokat feltételeznek!
+
+// Ábra
+
+\subsubsection{Feltételes adatmozgatás}
+
+Kétparaméteres utasítások: \texttt{cmov <hova> <honnan>} (\textit{conditional move}).
+
+// Ábra
+
+\subsubsection{Elágazások, ciklusok}
+
+\begin{figure}[h]
+	\centering
+	\begin{minipage}{0.25\linewidth}
+		\begin{lstlisting}[style=asmstyle, caption={Egyágú elágazás}]
+cmp eax,ebx
+je egyenlo
+mov eax,ebx
+egyenlo:
+		\end{lstlisting}
+	\end{minipage}
+\begin{minipage}{0.05\linewidth}
+	~
+\end{minipage}
+\begin{minipage}{0.25\linewidth}
+	\begin{lstlisting}[style=asmstyle, caption={Kétágú elágazás}]
+cmp ebx,ecx
+ja nagyobb
+mov eax,ecx
+jmp vege
+nagyobb:
+mov eax,ebx
+vege:
+	\end{lstlisting}
+\end{minipage}
+\begin{minipage}{0.05\linewidth}
+	~
+\end{minipage}
+\begin{minipage}{0.25\linewidth}
+	\begin{lstlisting}[style=asmstyle, caption={Ciklus}]
+mov eax,0
+eleje: cmp ecx,0
+je vege
+add eax,ecx
+dec ecx
+jmp eleje
+vege:
+	\end{lstlisting}
+\end{minipage}
+\end{figure}
+
+\subsection{Veremműveletek}
+
+Minden futó programhoz tartozik egy verem vagy más néven \textbf{stack}. Ezt a memóriaterületet az \textbf{operációs rendszer rendeli hozzá} a programhoz. Az \asmexample{esp} regiszter mutatja a verem tetejét. Általában itt tároljuk:
+\begin{itemize}
+	\item függvények paraméterei
+	\item függvények visszatérési címe
+	\item függvények lokális változói
+	\item időlegesen tárolt adatok
+\end{itemize}
+
+Nem meglepően, a kapcsolódó \textit{egyparaméteres műveletei}: \texttt{push} és \texttt{pop}.
+
+\textbf{\textit{Megjegyzés}}. Mindkét esetben csak 2 vagy 4 bájtos lehet az operandusa a két utasításnak!
+
+// Ábra
+
+\subsubsection{Függvényhívás és visszatérés}
+
+Egyparaméteres utasítás: \texttt{call <címke>}. Valójában ez is egyfajta ugróutasítás.
+
+Paraméter nélküli utasítás: \texttt{ret}.
+
+\textbf{\textit{Megjegyzés}}. Mindkettő módosítja az \texttt{eip} és az \texttt{esp} értékét!
+
+// Ábra
+
+\subsubsection{Függvényhívás paraméterrel}
+
+Nincsenek külön műveletek erre -- az idáig bemutatottakat alkalmazzuk.
+\begin{itemize}
+	\item A függvény paraméterét a
+	verembe tesszük a hívás
+	előtt.
+	\item A függvény törzse
+	kimásolja a paramétert a
+	veremből.
+	\item A visszatérési érték az
+	\texttt{eax} regiszterben van.
+	\item A hívás után kivesszük a
+	paramétert (vagy legalább
+	a veremmutatót
+	visszaállítjuk).
+\end{itemize}
+
+%\newpage
+
+\section{Fordítás}
+
+A fordításhoz a \texttt{nasm} assemblert használjuk, ami előállítja a \textbf{tárgykódot}.
+
+Vegyük az alábbi kódokat!
+
+\begin{figure}[h]
+\begin{minipage}{0.45\linewidth}
+	\begin{lstlisting}[style=asmstyle, caption={\texttt{addone.asm}}]
+global main
+extern write_natural
+extern read_natural
+
+section .text
+main:
+call read_natural
+inc eax
+push eax
+call write_natural
+add esp,4
+mov eax,0
+ret
+	\end{lstlisting}
+\end{minipage}
+\begin{minipage}{0.05\linewidth}
+	~
+\end{minipage}
+\begin{minipage}{0.45\linewidth}
+	\begin{lstlisting}[style=cppstyle, caption={\texttt{io.c}}]
+#include <stdio.h>
+
+void write_natural(unsigned n) 
+{
+	printf("%u\n", n);
+}
+
+unsigned read_natural() 
+{
+	unsigned ret;
+	scanf("%u", &ret);
+	return ret;
+}
+	\end{lstlisting}
+\end{minipage}
+\end{figure}
+
+Az \texttt{addone.asm} meghívja az \texttt{io.c}-ből a \texttt{read\_natural} függvényt, ami beolvas egy előjel nélküli természetes számot, majd ezt kiíratja a \texttt{write\_natural} meghívásával. Végül a program terminál.
+
+Az említett két függvényt az egyszerűség kedvéért C-ben írjuk meg.
+Lehetne tisztán Assemblyben is, de az jóval bonyolultabb volna.
+
+Első lépésként az Assembly kódot fordítjuk le. A \texttt{-felf} kapcsolóval megadjuk a fájl formátumát (a mi esetünkben ez \texttt{elf}).
+
+\begin{lstlisting}[style=machinestyle]
+nasm -felf addone.asm
+\end{lstlisting}
+
+Ezután a C fordítóval lefordítjuk gépi kódra az \texttt{io.c}-t, majd összelinkeljük a kapott tárgykódokat, ügyelve arra, hogy 32-bites architektúrájúra fordítsuk le (\texttt{-m32}).
+
+\begin{lstlisting}[style=machinestyle]
+gcc -m32 -oaddone io.c addone.o
+\end{lstlisting}
+
+Végül nincs más hátra, mint hogy kipróbáljuk!
+
+\begin{lstlisting}[style=machinestyle]
+./addone
+41
+42
+\end{lstlisting}

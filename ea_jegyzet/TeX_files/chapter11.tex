@@ -1,0 +1,313 @@
+\chapter{Kódgenerálás}
+
+Elérkeztünk a kurzus azon pontjára, amikor is megkoronázzuk az eddigi munkálatainkat, azaz a fordítóprogramunk működő számítógépes programot képes gyártani!
+
+\section{Kódgenerálás attribútumnyelvtannal}
+
+Kódot generálni általában úgy szoktunk, hogy \textbf{transzlációval} a saját, magas szintű nyelvünket lefordítjuk \textbf{Assemblyre}, majd az assembler legenerálja nekünk a kívánt gépi kódot. Kizárólag indokolt esetben érdemes közvetlenül gépi kódot generálni.
+
+Ott hagytuk abba, hogy a szemantikus elemző ellenőrizte a deklarációkat a szimbólumtáblával és a típusokat az attribútumnyelvtannal. Haladjunk ezen az útvonalon -- pontosabban az alulról felfele, $LR$ elemző megoldásának útján.
+
+A szabályok bal oldalaihoz, mint láttuk, felvettünk attribútumokat, melyek különféle tulajdonságokat határoztak meg. \textit{Miért ne tehetnénk meg ugyanezt magával a kód generálásával}?
+
+\textbf{Vegyük fel} a \textit{szabályok bal oldalához} a \textbf{következő szintetizált attribútumot}: $code : \mathbb{S}$. Ez egy egyszerű sztring lesz, amihez hozzákonkatenáljuk az egyes részeket, ahogy haladunk felfele a szintaxisfában.
+
+A nyelvtan továbbra is \[\prodrule{E}{\texttt{int\_literal} \mid \texttt{identifier} \mid E ~ \texttt{less\_than} ~ E}.\]
+
+A mondatunk: \[ \texttt{10 < x}. \]
+
+Az elemzett szintaxisfa eddigi állapota:
+
+\begin{figure}[h]
+	\centering
+	\begin{forest}
+		for tree={edge={-}, l sep-=10pt, s sep+=10pt}
+		[$E$\textsuperscript{$type : \text{bool}$}
+		[$E$\textsuperscript{$type : \text{int}$}
+		[\texttt{int\_literal}\textsuperscript{$value : 10$}, tier=terminal]
+		]
+		[\texttt{less\_than}, tier=terminal]
+		[$E$\textsuperscript{$type : \text{int}$}
+		[\texttt{identifier}\textsuperscript{$name : \texttt{x}$}, tier=terminal]
+		]
+		]
+	\end{forest}
+\end{figure}
+
+A korábban definiált, szabályokhoz rendelt \textbf{akciókat módosítsuk} úgy, hogy megadjuk az Assembly kódrészleteket.
+
+\begin{stuki*}[14cm]{$\prodrule{E}{\texttt{int\_literal}}$}
+	\stm{E.type := \text{int}}
+	\stm{E.code := "\texttt{mov eax ,}" + \texttt{int\_literal}.value +"\texttt{\textbackslash n}"}
+\end{stuki*}
+
+\begin{stuki*}[14cm]{$\prodrule{E}{\texttt{identifier}}$}
+	%\stm{\text{/* Ellenőrzés: Deklarálva volt-e az azonosító? */}}
+	\begin{IF}[20]{5}{\stm{\texttt{identifier}.name \notin symbol\_table}}
+		\stm{error(\dots)}
+		\ELSE
+		\stm{type := symbol\_table.get\_type(\texttt{identifier}.name)}
+		\stm{E.type := type}
+		\begin{CASE}{2}{2}
+			\WHEN{\stm{E.type = \text{int}}}
+			\stm[2]{E.code := \\ "\texttt{mov eax, [}" + type + "\texttt{]\textbackslash n}"}
+			\WHEN{\stm{\dots}}
+			\stm{\text{/* Ha logikai lenne, az} \\ \text{kisebb regiszterben is elférne */}}
+		\end{CASE}
+	\end{IF}
+\end{stuki*}
+
+\begin{stuki*}[14cm]{$\prodrule{E_1}{E_2 ~ \texttt{less\_than} ~ E_3}$}
+	%\stm{\text{/* Ellenőrzés: Megfelelő típusúak-e a ``\texttt{<}'' operátor paraméterei? */}}
+	\begin{IF}[20]{4}{\stm{E_2.type \neq \text{int} \lor E_3.type \neq \text{int}}}
+		\stm{error(\dots)}
+		\ELSE
+		\stm{E_1.type := \text{bool}}
+		\stm[3]{E_1.code :=  E_2.code + "\texttt{push eax\textbackslash n}" + \\ E_3.code + "\texttt{mov ebx, eax\textbackslash n}" + "\texttt{pop eax \NEWLINE}" + \\ "\texttt{cmp eax, ebx\NEWLINE}" + "\texttt{mov al, 0\NEWLINE}" + "\texttt{cmovb al, 1\NEWLINE}"}
+	\end{IF}
+\end{stuki*}
+
+Ahhoz, hogy megkönnyítsük a munkánkat, bevetejünk ún. kódgenerálási sémákat, melyek hatékonyabbá teszik az Assembly kódok ``megkomponálását''.
+
+\section{Kódgenerálási sémák}
+
+A sémákat nem szabványos struktogramok formájában írom fel.
+
+A számokat 32 bites, előjeles egész számként fogjuk tárolni. Minden szám típusú kifejezés eredményét az \texttt{eax} regiszterbe fogjuk kiszámolni.
+
+\begin{figure}[h]
+	\begin{stuki*}[5cm]{$\prodrule{E}{\texttt{int\_literal}}$}
+		\stm*{\texttt{mov eax,} \textit{literál értéke}}
+	\end{stuki*}
+	\caption{Számliterál kifejezés kódgenerálási sémája}
+\end{figure}
+
+A logikai értékeket 1 bájton fogjuk tárolni. Adatreprezentáció: $false = 0$ és $true = 1$. Minden logikai típusú kifejezés eredményét az \texttt{al} regiszterbe fogjuk kiszámolni.
+
+\begin{figure}[h]
+	\begin{minipage}{0.5\linewidth}
+		\begin{stuki*}[5cm]{$\prodrule{E}{\texttt{false}}$}
+			\stm*{\texttt{mov al, 0}}
+		\end{stuki*}
+	\end{minipage}
+	\begin{minipage}{0.5\linewidth}
+		\begin{stuki*}[5cm]{$\prodrule{E}{\texttt{true}}$}
+			\stm*{\texttt{mov al, 1}}
+		\end{stuki*}
+	\end{minipage}
+	\caption{Logikai literál kifejezés kódgenerálási sémája}
+\end{figure}
+
+A változók adatait a szimbólumtáblában tároljuk. Mindegyikhez egy egyedi címkét generálunk, amikor betesszük őket a táblába. A változó használatakor kiolvassuk a címkét, és beépítjük a generált kódba.
+
+\begin{figure}[h]
+	\begin{minipage}{0.5\linewidth}
+		\begin{stuki*}[5cm]{$\prodrule{E}{\texttt{identifier}}$}
+			\stm*{\texttt{mov eax,} \texttt{[}\textit{címke}\texttt{]}}
+		\end{stuki*}
+	\end{minipage}
+	\begin{minipage}{0.5\linewidth}
+		\begin{stuki*}[5cm]{$\prodrule{E}{\texttt{identifier}}$}
+			\stm*{\texttt{mov al,} \texttt{[}\textit{címke}\texttt{]}}
+		\end{stuki*}
+	\end{minipage}
+	\caption{Változó mint kifejezés kódgenerálási sémája}
+\end{figure}
+
+Ehhez megtesszük az értelemszerű módosításokat a szimbólumtábla implementációjában is.
+
+\begin{figure}[h]
+	\centering
+	
+	\struct{SymbolTable}
+	+ $name : \mathbb{S}$ \\
+	\vdots \\
+	%+ $kind : Kind$ \\
+	%+ $type : Type$ \\
+	%+ $declaration : \mathbb{N} \times \mathbb{N}$ ~ \texttt{/* (row, column) */} \\
+	%+ $used\_here : \mathbb{N} \times \mathbb{N}\langle\rangle$ \texttt{/* list of coordinates */}\\
+	+ $code : \mathbb{S}$ \\
+	+ $label : \mathbb{S}$ \\
+	\hline
+	+ SymbolTable(\dots) \\
+	\vdots \\
+	+ \underline{next\_label$():\mathbb{S}$} \\ 
+	\texttt{/* additional methods may come here */} \\
+	\eoStruct
+	\caption{A szimbólumtábla egy lehetséges módosítása}
+\end{figure}
+
+Beépített operátorok kódgenerálási sémája:
+
+\begin{figure}[h]
+	\begin{minipage}{0.5\linewidth}
+		\begin{stuki*}[5cm]{$\prodrule{E_1}{E_2 \texttt{ plus\_op } E_3}$}
+			\stm*[6]{
+				\textit{$E_2$ kódja} \\
+				\texttt{push eax} \\
+				\textit{$E_3$ kódja} \\
+				\texttt{mov ecx, eax} \\
+				\texttt{pop eax} \\
+				\texttt{add eax, ecx}}
+		\end{stuki*}
+	\end{minipage}
+	\begin{minipage}{0.5\linewidth}
+		\begin{stuki*}[5cm]{$\prodrule{E}{\texttt{identifier}}$}
+			\stm*[6]{
+				\textit{$E_2$ kódja} \\
+				\texttt{push eax} \\
+				\textit{$E_3$ kódja} \\
+				\texttt{mov ecx, eax} \\
+				\texttt{pop eax} \\
+				\texttt{mul eax, ecx}}
+		\end{stuki*}
+	\end{minipage}
+	\caption{Összeadás és szorzás kódgenerálási sémája}
+\end{figure}
+
+\begin{figure}[h]
+	\begin{minipage}{0.5\linewidth}
+		\begin{stuki*}[5cm]{$\prodrule{E_1}{E_2 \texttt{ plus\_op } E_3}$}
+			\stm*[7]{
+				\textit{$E_2$ kódja} \\
+				\texttt{push eax} \\
+				\textit{$E_3$ kódja} \\
+				\texttt{mov ecx, eax} \\
+				\texttt{pop eax} \\
+				\texttt{cmp eax, ecx} \\
+				\texttt{mov al, 0} \\
+				\texttt{cmovb al, 1}}
+		\end{stuki*}
+	\end{minipage}
+	\begin{minipage}{0.5\linewidth}
+		\begin{stuki*}[5cm]{$\prodrule{E}{\texttt{identifier}}$}
+			\stm*[6]{
+				\textit{$E_2$ kódja} \\
+				\texttt{push ax} \\
+				\textit{$E_3$ kódja} \\
+				\texttt{mov cx, ax} \\
+				\texttt{pop ax} \\
+				\texttt{and al, cl}}
+		\end{stuki*}
+	\end{minipage}
+	\caption{Kisebb operátor és logikai ``és'' kódgenerálási sémája}
+\end{figure}
+
+\pagebreak
+
+Értékadás kódgenerálási sémája egész számra (bal oldal) és logikai értékre (jobb oldal). A változó címkéjét itt is a szimbólumtáblából vesszük.
+
+\begin{figure}[h]
+	\begin{minipage}{0.5\linewidth}
+		\begin{stuki*}[5cm]{$\prodrule{U}{ \texttt{identifier} ~ \texttt{assign\_op} ~ E}$}
+			\stm*[2]{
+				\textit{E kódja} \\
+				\texttt{mov [\textit{címke}], eax}}
+		\end{stuki*}
+	\end{minipage}
+	\begin{minipage}{0.5\linewidth}
+		\begin{stuki*}[5cm]{$\prodrule{U}{ \texttt{identifier} ~ \texttt{assign\_op} ~ E}$}
+			\stm*[2]{
+				\textit{E kódja} \\
+				\texttt{mov [\textit{címke}], al}}
+		\end{stuki*}
+	\end{minipage}
+	\caption{Értékadás kódgenerálási sémája}
+\end{figure}
+
+Elágazás kódgenerálási sémái. A kódgenerálási sémában szereplő címkék (pl. \textit{vége},
+\textit{hamis}) helyett a séma minden felhasználásakor egyedi címkéket kell generálni (pl. \texttt{label0}, \texttt{label1}, \texttt{label2}, \dots)\footnote{Lásd a módosított UML-diagramot.}
+
+\begin{figure}[h]
+	\begin{minipage}{0.5\linewidth}
+		\begin{stuki*}[5cm]{$\prodrule{U}{ \texttt{if} ~ E ~ \texttt{then} ~ P ~ \texttt{end}}$}
+			\stm*[5]{
+				\textit{E kódja} \\
+				\texttt{cmp al, 1} \\
+				\texttt{jne near \textit{vége}} \\
+				\textit{P kódja} \\
+				\texttt{\textit{vége}:}}
+		\end{stuki*}
+	\end{minipage}
+	\begin{minipage}{0.5\linewidth}
+		\begin{stuki*}[5cm]{$\prodrule{U}{ \texttt{if} ~ E ~ \texttt{then} ~ P_1 ~ \texttt{else} ~ P_2 ~ \texttt{end}}$}
+			\stm*[7]{
+				\textit{E kódja} \\
+				\texttt{cmp al, 1} \\
+				\texttt{jne near \textit{hamis}} \\
+				\textit{$P_1$ kódja} \\
+				\texttt{jmp \textit{vége}} \\
+				\texttt{hamis:} \\
+				\textit{$P_2$ kódja}
+				\texttt{\textit{vége}:}}
+		\end{stuki*}
+	\end{minipage}
+	\caption{Egy- és kétágú elágazás kódgenerálási sémája}
+\end{figure}
+
+\begin{figure}[h]
+	\begin{minipage}{0.5\linewidth}
+		\begin{stuki*}[5cm]{$\prodrule{U}{ \texttt{while} ~ E ~ \texttt{do} ~ P ~ \texttt{done}}$}
+			\stm*[7]{
+				\texttt{\textit{eleje}:} \\
+				\textit{E kódja} \\
+				\texttt{cmp al, 1} \\
+				\texttt{jne near \textit{vége}} \\
+				\textit{P kódja} \\
+				\texttt{jmp \textit{eleje}} \\
+				\texttt{\textit{vége}:}}
+		\end{stuki*}
+	\end{minipage}
+	\begin{minipage}{0.5\linewidth}
+		\begin{stuki*}[5cm]{$\prodrule{U}{ \texttt{do} ~ P ~ \texttt{while} ~ E}$}
+			\stm*[5]{
+				\texttt{\textit{eleje}:} \\
+				\textit{P kódja} \\
+				\textit{E kódja} \\
+				\texttt{cmp al, 1} \\
+				\texttt{je near \textit{eleje}}}
+		\end{stuki*}
+	\end{minipage}
+	\caption{Elöl- és hátultesztelő ciklus kódgenerálási sémája}
+\end{figure}
+
+\pagebreak
+
+Utolsó előtti lépésként a \textbf{szimbólumtáblát is rögzítenünk kell a kódban}. Ehhez végigiterálunk a tábla bejegyzésein és az \textbf{Assembly kód \texttt{.bss} szekciójába} beillesztjük. Sem a név, sem a méret miatt nem kell aggódnunk, ugyanis ezek az információk mind kinyerhetők a $label:\mathbb{S}$ (változónév) és $type:\text{Type}$ (méret) attribútumok segítségével.
+
+\begin{figure}[h]
+	\centering
+	\begin{minipage}{0.5\linewidth}
+		\begin{tabular}{|c|c|c|c|}
+			\hline
+			\textbf{Név} & \textbf{Fajta} & \textbf{Típus} & \textbf{Címke} \\
+			\hline\hline
+			\texttt{b} & változó & bool & \textit{lab0} \\
+			\hline
+			\texttt{i} & változó & int & \textit{lab1} \\
+			\hline
+		\end{tabular}
+	\end{minipage}
+	\begin{minipage}{0.3\linewidth}
+		\begin{lstlisting}[style=asmstyle]
+section .bss
+lab0: resb 1
+lab1: resd 1
+		\end{lstlisting}
+	\end{minipage}
+\end{figure}
+
+Végül, a teljes program sémája. Ebbe fognak beillesztődni az egyes kódsémák, kódrészletek, amint az elemző elérte a szintaxisfa gyökerét.
+
+\begin{lstlisting}[style=asmstyle, caption={A teljes program sémája}]
+global main
+extern ; external labels
+
+section .bss
+; variables from symbol table
+
+section .text
+main:
+; program instructions
+ret
+\end{lstlisting}
