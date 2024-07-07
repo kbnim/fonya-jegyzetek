@@ -1,0 +1,188 @@
+\documentclass[a4paper,11pt]{book}
+\usepackage[utf8]{inputenc}
+\usepackage[hungarian]{babel}
+\usepackage[T1]{fontenc}
+\usepackage{t1enc}
+\usepackage[margin=3cm]{geometry}
+\usepackage{graphicx}
+\usepackage{amsmath, stmaryrd}
+\usepackage{amssymb}
+\usepackage{mathtools}
+\usepackage{setspace}
+\usepackage{parskip}
+\usepackage{tcolorbox}
+\usepackage{mdframed}
+\usepackage[hidelinks]{hyperref}
+\usepackage{tikz}
+\usepackage{tikz-qtree}
+\usepackage{forest}
+\usetikzlibrary{shapes.geometric, arrows, positioning, automata}
+\usepackage{enumerate}
+\usepackage{lipsum}
+\usepackage{stuki}
+\usepackage{stukicommands}
+\usepackage{listingsutf8, listings}
+\usepackage{caption}
+\usepackage{xcolor}
+\usepackage{framed}
+\usepackage{array}
+\usepackage{makecell}
+
+\renewcommand\theadalign{bc}
+\renewcommand\theadfont{\bfseries}
+\renewcommand\theadgape{\Gape[4pt]}
+\renewcommand\cellgape{\Gape[4pt]}
+
+\captionsetup[lstlisting]{labelformat=empty}
+
+\makeatletter
+\newcommand{\verbatimfontsize}{\small\verbatim@font}
+\makeatother
+
+\lstdefinestyle{cppstyle}{
+	language=C++,
+	basicstyle=\ttfamily\small,
+	commentstyle=\itshape\color{green!60!black},
+	keywordstyle=\bfseries\color{blue},
+	numberstyle=\tiny\color{gray},
+	stringstyle=\color{orange},
+	numbers=left,
+	stepnumber=1,
+	showstringspaces=false,
+	tabsize=4,
+	frame=single,
+	breaklines=true,
+	breakatwhitespace=true,
+	captionpos=b,
+	morekeywords={constexpr, noexcept, override}
+}
+
+\lstdefinestyle{asmstyle}{
+	basicstyle=\ttfamily\small,
+	belowcaptionskip=1\baselineskip,
+	frame=single,
+	%frameround=tttt,
+	xleftmargin=\parindent,
+	language=[x86masm]Assembler,
+	commentstyle=\itshape\color{green!60!black},
+	keywordstyle=\color{blue!80!black},
+	identifierstyle=\color{red!80!black},
+	tabsize=4,
+	numbers=left,
+	numbersep=8pt,
+	stepnumber=1,
+	numberstyle=\tiny\color{gray},
+	columns=fullflexible,
+	breaklines=true,
+	breakatwhitespace=true,
+	captionpos=b,
+	morekeywords={.text, .bss, resb, resd, resw, global, extern, section}
+}
+
+\lstdefinestyle{machinestyle}{
+	basicstyle=\ttfamily\small,
+	belowcaptionskip=1\baselineskip,
+	frame=single,
+	%frameround=tttt,
+	xleftmargin=\parindent,
+	%language=[x86masm]Assembler,
+	%commentstyle=\itshape\color{green!60!black},
+	%keywordstyle=\color{blue!80!black},
+	%identifierstyle=\color{red!80!black},
+	tabsize=4,
+	numbers=left,
+	numbersep=8pt,
+	stepnumber=1,
+	numberstyle=\tiny\color{gray},
+	columns=fullflexible,
+	breaklines=true,
+	breakatwhitespace=true
+}
+
+
+\newtheorem{theorem}{tétel}[section]
+\newtheorem{corollary}{következmény}
+\newtheorem{proposition}{állítás}[section]
+\newtheorem{definition}{definíció}[section]
+\newtheorem{notation}{jelölés}[section]
+\newtheorem{example}{példa}[section]
+\newtheorem{remark}{megjegyzés}[section]
+\newtheorem{lemma}{lemma}[section]
+
+\newcommand{\setdivbar}{~ \middle\vert ~}
+\newcommand{\emptyword}{\varepsilon}
+\newcommand{\prodrule}[2]{#1 \longrightarrow #2}
+\newcommand{\genword}[2]{\xRightarrow[{#1}]{#2}}
+\newcommand{\partition}[1]{\stackrel{#1}{\sim}}
+\newcommand{\enum}[2]{\framebox{\textbf{type} \textit{#1} \textbf{is} \{#2\}}}
+\newcommand{\asmexample}[1]{\framebox{\texttt{#1}}}
+\newcommand{\NEWLINE}{\textbackslash n}
+
+\DeclareMathOperator{\dotdot}{..}
+
+\tikzset{
+	block/.style={draw},
+	selection/.style={draw, dotted}
+}
+
+\begin{document}
+
+\author{\textsc{Nagy Sára} előadásai és gyakorlatai, valamint \\ \textsc{Dr. Horpácsi Dániel} előadásai alapján}
+\title{\textbf{Formális nyelvek és \\ a fordítóprogramok alapjai} \\ {\Large 2023/2024/2. félév, B szakirány} }
+\date{\textit{Utolsó módosítás: \today}}
+
+\frontmatter
+\maketitle
+\tableofcontents
+
+\chapter*{Előszó}
+
+Ez a jegyzet az ELTE IK \textit{Formális nyelvek és a fordítóprogramok alapjai} c. tantárgy anyagát dolgozza fel, amit B szakirányon (\textit{Szoftvertervező specializáció}) tanítanak. A tantárgy több, korábbi tárgynak az összeillesztéséből alakult ki, emiatt eltér attól, amit más szakirányokon oktatnak. Az a legjelentősebb eltérés, hogy az elméleti anyag leginkább a fordítóprogramok részhez szükséges ismereteket készíti elő. A formális nyelvekről szóló előadásokat \textsc{Nagy Sára}, a fordítóprogramokról szólókat meg \textsc{Dr. Horpácsi Dániel} tartották.
+
+A jegyzet fejezetenként feldolgoz egy-két előadást. Bizonyos ``előadásokat'' összeolvasztottam, mert didaktikai szempontból egybetartoztak, másokat meg szétszedtem. %A fejezetek végére odaillesztettem azon feladatsorokat, melyeket a gyakorlaton néztünk. Ezek is a témák átszervezése szerint több témakört is értintenek. Megoldókulcsot nem tartalmaz, ám az elméleti részek közé igyekeztem magyarázatokat beszúrni, melyek segíthetnek a gyakorlati feladatok megoldásában.
+
+A jegyzet készítésének idején a vizsgán nem kérték számon a tételek bizonyítását, így ennek szellemében vázlatosabban voltak leadva az előadásokon. Akit érdekelnek, azok az alábbi jegyzetek közül szemezgethetnek -- valamint ezeket használtam fel ezen jegyzet elkészítéséhez. Egy apró megjegyzés: az [1.]-es forrásra néha úgy hivatkozok, hogy ``\textit{a régi jegyzet}'', de ez senkit ne tévesszen meg. Az online elérhető jegyzetekhez kattintható hivatkozást is mellékeltem.
+
+Igyekeztem a legjobb tudásom szerint összeállítani a jegyzetet, ennek ellenére előfordulhatnak benne elgépelések, hibák, stb. Ha találsz ilyet, kérlek értesíts e-mailben a(z) \href{mailto:ap3558@inf.elte.hu}{ap3558@inf.elte.hu} címen.
+
+Sikeres felkészülést kívánok!
+
+%\textit{\today}
+
+\begin{flushright}
+	\textit{Kiss-Bartha Nimród}
+\end{flushright}
+
+\begin{center}
+	~
+	
+	~
+\end{center}
+
+\textbf{Felhasznált források}:
+\begin{enumerate}[{[}1.{]}]
+	\item Dr. Hunyadvári László, Manhertz Tamás -- Automaták és formális nyelvek \\ (\textit{Utolsó frissítés: 2006. január 13.}) [\href{http://aszt.inf.elte.hu/~hunlaci/book.pdf}{\texttt{pdf}}]
+	\item Az előadások diasorai (2024.) (\textit{Canvason elérhetők})
+	\item Dr. Ásványi Tibor -- Algoritmusok és adatszerkezetek II. előadásjegyzet [\href{http://aszt.inf.elte.hu/~asvanyi/ad/ad2jegyzet/}{\texttt{pdf}}]
+	\item további források
+\end{enumerate}
+
+\mainmatter
+\include{./TeX_files/chapter01}
+\include{./TeX_files/chapter02}
+\include{./TeX_files/chapter03}
+\include{./TeX_files/chapter04}
+\include{./TeX_files/chapter05}
+\include{./TeX_files/chapter06}
+\include{./TeX_files/chapter07}
+\include{./TeX_files/chapter08}
+\include{./TeX_files/chapter09}
+\include{./TeX_files/chapter10}
+\include{./TeX_files/chapter11}
+%\include{./TeX_files/chapter12}
+%\include{./TeX_files/chapter13}
+
+\backmatter
+% bibliography, glossary and index would go here.
+
+\end{document}

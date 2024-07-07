@@ -1,0 +1,422 @@
+\chapter{Reguláris (3-as típusú) nyelvtanok}
+
+\section{Reguláris nyelvek}
+
+A 3-as nyelvcsalád nyelveit az alábbi módokon írhatjuk le:
+\begin{itemize}
+	\item 3-as típusú grammatikával,
+	\item reguláris kifejezéssel,
+	\item véges determinisztikus automatával (VDA),
+	\item véges nemdeterminisztikus automatával (VNDA).
+\end{itemize}
+
+\textbf{\textit{Megjegyzés}}. A programozási nyelvek lexikális egységei a 3-as nyelvcsaládba tartoznak.
+
+\begin{tcolorbox}
+	\begin{proposition}
+		\[ \mathcal{L}_3 = \mathcal{L}_{reg} = \mathcal{L}_{VDA} = \mathcal{L}_{VNDA}. \]
+	\end{proposition}
+\end{tcolorbox}
+
+Bebizonyítható az állítás. A régi jegyzetben több tétel következményeként meggondolható. Emellett a későbbiekben be is fogjuk látni.
+
+\begin{tcolorbox}
+	\begin{definition}[Reguláris nyelvek]
+		~~
+		\begin{itemize}
+			\item az \textbf{elemi nyelvek}: $\emptyset$, $\{\emptyword\}$, $\{a\}$ , ahol $a \in U$,
+			azaz egy tetszőleges betű
+			\item  azon nyelvek, melyek az elemi nyelvekből az \textbf{unió}, a \textbf{konkatenació} és a \textbf{lezárás}
+			műveletek \textbf{véges számú alkalmazásával} állnak elő;
+			\item  nincs más reguláris nyelv
+		\end{itemize}
+	\end{definition}
+\end{tcolorbox}
+
+\textbf{\textit{Példa}}. $\left\{ \{\verb*|a|\} \cup \left\{\verb*|b|\right\} \right\}^*\{\verb*|b|\} = \left\{u\verb*|b| \mid u \in \left\{a,\verb*|b|\right\}^* \right\}$.
+
+\begin{tcolorbox}
+	\begin{theorem}
+		Minden $L$ reguláris nyelvhez megadható egy $G \in \mathcal{G}_3$ 3-as típusú grammatika, amelyre $L=L(G)$. $(\mathcal{L}_{reg} \subseteq \mathcal{L}_3)$
+	\end{theorem}
+\end{tcolorbox}
+
+~\\[2.5em]
+
+\begin{mdframed}
+	\textbf{\textit{Bizonyítás}}. Az elemi nyelvekhez adhatunk 3-as típusú nyelvtanokat.
+	\begin{itemize}
+		\item $G=(\{S\},\{\verb*|a|\},\{\prodrule{S}{\texttt{a}S}\},S) ~~~ L(G)=\emptyset$. 
+		\item $G=(\{S\},\{\verb*|a|\},\{\prodrule{S}{\emptyword}\},S) ~~~~~ L(G)=\{\emptyword\}$.
+		\item $G=(\{S\},\{\verb*|a|\},\{\prodrule{S}{\texttt{a}}\},S) ~~~~~ L(G)=\{\texttt{a}\}$.
+	\end{itemize}
+	
+	Korábban láttuk, hogy az $\mathcal{L}_3$ \textit{nyelvcsalád zárt a reguláris műveletekre nézve}.
+	Az elemi nyelvek grammatikáiból kiindulva megkonstruálható a reguláris műveletekhez tartozó grammatika konstrukciókkal a megfelelő 3-as típusú grammatika bármely összetett reguláris nyelvhez. $\square$
+\end{mdframed}
+
+\begin{tcolorbox}
+	\begin{definition}[Reguláris kifejezés]
+		~
+		\begin{itemize}
+			\item az \textbf{elemi reguláris kifejezések}: $\emptyset$, $\emptyword$, $a$  ~~ $(a \in U)$
+			\item ha $R_1$ és $R_2$ és $R$ reguláris kifejezések akkor
+			\begin{enumerate}[i)]
+				\item $(R_1 | R_2)$;
+				\item $(R_1R_2$);
+				\item $(R)^*$ is \textbf{reguláris kifejezések}.
+			\end{enumerate}
+			\item a \textbf{reguláris kifejezések halmaza} a legszűkebb halmaz, melyre a fenti két pont teljesül.
+		\end{itemize}
+	\end{definition}
+\end{tcolorbox}
+
+\textbf{\textit{Vigyázat!}} A reguláris kifejezések önmagukban nem reguláris nyelvek, azaz a reguláris kifejezés nem ugyanaz, mint a reguláris nyelv. Jelölésben az alábbi módon különböztetjük meg:
+\[ L_R \text{ jelöli az } R \text{ reguláris kifejezéshez tartozó nyelvet.} \]
+Az elemi nyelvekre kiterjesztve:
+\begin{flalign*}
+	L_\emptyset &= \emptyset, \\ L_\emptyword &= \{\emptyword\}, \\ L_a &= \{ a \} ~~~ (a \in U).
+\end{flalign*}
+Valamint, ha $Q$ és $R$ reguláris kifejezések, akkor:
+\begin{flalign*}
+	L_{(Q|R)} &= L_Q \cup L_R \\
+	L_{(QR)} &= L_Q L_R \\
+	L_{(R)^*} &= (L_R)^*
+\end{flalign*}
+
+A gyakorlatban sokszor nem számít ez a különbségtétel, ezért előfordulhat, hogy a jegyzetben a világosság érdekében, de a pontosság rovására ez a ``szintaktikai cukormáz'' fogja jelenteni a nyelvet.
+
+A műveletek \textbf{prioritási sorrend}je növekvően:
+\[ \text{unió } < \text{ konkatenáció } < \text{ lezárás}. \]
+A zárójelek elhagyhatók a reguláris kifejezésekből a prioritásoknak megfelelően.
+
+\section{3-as típusú nyelvtanok normálformája}
+
+Ahogy korábban bevezettük, a nyelvtanok típusaihoz léteznek ún. \textbf{normálformák}, amelyekre gondolhatunk úgy, mint speciális formára hozott nyelvtanok, melyek ekvivalensek az eredetivel. Ezek sokszor megkönnyítik a nyelvtan vizsgálatát.
+
+A 3-as típusú nyelvtanok normálformája az alábbi alakkal rendelkeznek.
+
+\begin{tcolorbox}
+	\begin{theorem}
+		Minden 3-as típusú nyelv generálható olyan grammatikával, amelynek szabályai az alábbi alakokat ölthetik fel:
+		\begin{itemize}
+			\item \framebox{$\prodrule{A}{aB}$} , ahol $A,B \in N$ és $a \in T$ (egyetlen szimbólum),
+			\item \framebox{$\prodrule{A}{\emptyword}$} , ahol $A \in N$.
+		\end{itemize}
+	\end{theorem}
+\end{tcolorbox}
+
+A normálformát a 3-as típusú nyelvtanok esetében azért szeretjük, mert \textbf{könnyű belőle automatát készíteni}. Az, hogy a normálformára hozott nyelvtanból hogyan tudunk automatát előállítani, azt a későbbiekben tárgyaljuk. Egyelőre megnézzük azt az \textbf{algoritmus}t, mellyel \textbf{normálformára hozhatunk  3-as típusú nyelvtanokat}.
+
+~\\[-2em]
+
+\begin{mdframed}
+
+A \textbf{3-as normálformára hozás algoritmusa} 3 lépésből áll.
+
+\begin{enumerate}[I.]
+	\item \underline{Hosszredukció}
+	
+	Elhagyjuk az $\prodrule{A}{\texttt{a}_1 \dots \texttt{a}_k B}$ alakú szabályokat, ahol $k \geq 2$ és \[ \forall i  \in [1..k] : \texttt{a}_i \in T, \] valamint teljesül, hogy $A \in N$ és $B \in N \cup \{\emptyword\}$. Tehát a jobb oldalon nem szükséges, hogy nemterminális szimbólum is szerepeljen.
+	
+	Helyettesítsük a következő szabályokkal:
+	\begin{align*}
+		\prodrule{A}&{\texttt{a}_1 Z_1}, & \text{ ahol } Z_1 \notin N \to \text{ új terminális} \\
+		\prodrule{Z_1}&{\texttt{a}_2 Z_2}, & \text{ ahol } Z_2 \notin (N \cup \{Z_1\}) \\
+		\prodrule{Z_2}&{\texttt{a}_3 Z_3}, & \text{ ahol } Z_2 \notin (N \cup \{Z_1, Z_2\}) \\
+		\cdots \\
+		\prodrule{Z_{k-1}}&{\texttt{a}_k B}
+	\end{align*}
+	Vagyis minden szabályra új nemterminálisokat vezetünk be. Azért hívjuk hosszredukciónak ezt a lépést, mert a szabály jobb oldalának $\texttt{a}_1 \dots \texttt{a}_k \in T^k \subset T^*$ ``szeletéből'' olyan szabályokat hozunk létre, melyek már $\texttt{a}_i \in T$ ($i \in [1..k]$) terminálisokat tartalmaznak.
+	
+	\item \underline{Befejező szabályok átalakítása}
+	
+	Elhagyjuk az $\prodrule{A}{\texttt{a}}$ alakú szabályokat\footnote{Ezeket \textit{befejező szabályok}nak nevezzük.}, ahol $\texttt{a} \in T$ és $A \in B$. Ehhez felveszünk egy új nemterminálist (jelöljük $E$-vel), ami lehet közös minden befejező szabály esetén.
+	
+	Innen az alábbi új szabályokat felvesszük a transzformált nyelvtanunkba:
+	\[ \prodrule{A}{\texttt{a}E} \text{ ~ és ~ } \prodrule{E}{\emptyword}. \]
+	
+	\item \underline{Láncmentesítés}
+	
+	Elhagyjuk az $\prodrule{A}{B}$ alakú szabályokat, ahol $A,B \in N$. Más szóval, csak nemterminális áll a szabály jobb oldalán.
+	
+	Első lépésben meghatározzuk minden $A \in B$ esetén a 
+	\[ H(A) := \left\{ B \in N \setdivbar A \genword{G}{*} B \right\} \] halmazokat. Ehhez iteratívan definiáljuk a $H_i$ halmazokat ($i \geq 1$):
+	\begin{align*}
+		H_1(A) & := \{A\}, \\
+		H_{i+1}(A) & := H_i (A) \cup \left\{ B \in N \setdivbar \exists C \in H_i(A) \land \prodrule{C}{B} \in P \right\}.
+	\end{align*}
+	Ha elkészültünk a halmazokkal, azt mondhatjuk, hogy
+	\[ \exists k \in \mathbb{N}^+: H_1(A) \subseteq H_2(A) \subseteq \cdots \subseteq H_k(A) = H_{k+1}(A). \] Ekkor legyen $H(A) := H_k(A)$.
+	
+	Ezután felvesszük a transzformált nyelvtanba az $\prodrule{A}{X}$ szabályokat, ha
+	\[ \exists B \in H(A), \prodrule{B}{X} \in P, \text{ ahol } X \in (N \cup T)^* \text{ és } X \text{ nem csak egyetlen terminális}. \]
+\end{enumerate}
+
+\end{mdframed}
+
+\section{Véges automaták}
+
+%\subsection{Véges determinisztikus automaták (VDA)}
+
+\begin{tcolorbox}
+	\begin{definition}
+		\textbf{Véges determinisztikus automatá}nak nevezzük az \[ A = (Q, T, \delta, q_0, F) \] rendezett ötöst, ahol
+		\begin{itemize}
+			\item $Q$ az \textbf{állapotok halmaza} $(0 < |Q| < \infty)$,
+			\item $T$ a \textbf{bemeneti szimbólumok ábécéje},
+			\item $\delta : Q \times T \to Q$ leképezés az \textbf{állapot-átmeneti függvény},
+			\item $q_0 \in Q$ a \textbf{kezdeti állapot},
+			\item $F \subseteq Q$ az \textbf{elfogadóállapotok halmaza} (vagy \textbf{végállapotok halmaza})
+		\end{itemize}
+	\end{definition}
+\end{tcolorbox}
+
+\textbf{\textit{Megjegyzés}}. Fontos, hogy \textit{véges determinisztikus automata} esetén a $\delta$ függévny értelmezett minden $(q,a) \in Q \times T$ párra, azaz
+\[ \forall (q,a) \in Q \times T, \exists! p \in Q : \delta(q, a) = p. \]
+
+Ha ez nem teljesül, azaz egy $(q,a)\in Q \times T$ párhoz több $p\in Q$ állapot is tartozhat, akkor \textit{véges \textbf{nem}determinisztikus automatá}ról beszélünk (\textit{VNDA} vagy \textit{NDA}).
+
+\begin{tcolorbox}
+	\begin{definition}
+		\textbf{Véges nemdeterminisztikus automatá}nak nevezzük az \[ A = (Q, T, \delta, Q_0, F) \] rendezett ötöst, ahol
+		\begin{itemize}
+			\item $Q$ az \textbf{állapotok halmaza} $(0 < |Q| < \infty)$,
+			\item $T$ a \textbf{bemeneti szimbólumok ábécéje},
+			\item $\delta : Q \times T \to \mathcal{P}(Q)$ leképezés az \textbf{állapot-átmeneti függvény},
+			\item $Q_0 \subseteq Q$ a \textbf{kezdőállapotok halmaza},
+			\item $F \subseteq Q$ az \textbf{elfogadóállapotok halmaza} (vagy \textbf{végállapotok halmaza})
+		\end{itemize}
+	\end{definition}
+\end{tcolorbox}
+
+Felhívjuk a figyelmet arra a pár apró, ugyan lényekes különbségre, ami ebben a definícióban található.
+\begin{itemize}
+	\item Egyrészt, a egyetlen kezdőállapot helyett kezdőállapotok halmazáról beszélünk.
+	\item Az állapot-átmenetek függvénye a $Q$ hatványhalmazába képez (amit $\mathcal{P}(Q)$-val jelölünk). Ez engedi meg, hogy egy adott $(q,a)$ párhoz több állapotot is hozzárendelhessünk.
+\end{itemize}
+A VNDA a VDA általánosításának tekinthető.
+
+Hogy kövessük az eddig bevezetett konvenciókat, az állapot-átmeneteket is felírhatjuk olyan szintaxissal, amellyel a produkciós szabályokat írtuk fel.
+\[ \delta(q,a) = p ~~~ \Longleftrightarrow ~~~ \prodrule{qa}{p}. \]
+
+Az automaták témakörében is értelmezzük a \textit{mondatform}ának megfeleltethető fogalmat, amit \textbf{konfiguráció}nak nevezünk.
+
+\begin{tcolorbox}
+	\begin{definition}[Konfiguráció]
+		A $v \in QT^*$ egy konfigurációja egy VDA-nak, ha az aktuális állapotot és az inoput hátralévő részét tartalmazza, azaz $v = qu$.
+	\end{definition}
+\end{tcolorbox}
+
+Hasonlóan, a \textit{közvetlen és közvetett levezetés}nek is létezik megfelelője. Ezeket \textbf{közvetlen}, ill. \textbf{közvetett redukció}nak nevezzük. A redukció név arra utal, hogy az inputszalagról beolvasott szöveg hossza egyre csökken.
+
+\begin{tcolorbox}
+	\begin{definition}[Közvetlen redukció]
+		Legyen $A = (Q,T,\delta,q_0,F)$ egy VDA és legyenek $u,v \in Q^*$ konfigurációk.
+		
+		Azt mondjuk, hogy az $A$ automata az $u$ konfigurációt a $v$ konfigurációra \textbf{redukálja közvetlenül}, ha
+		\[ \exists \delta(q,a)=p \text{ szabály} \land \exists w \in T^* : u = qaw \land v = pw. \]
+		Jele: $u\genword{A}{}v$.
+	\end{definition}
+\end{tcolorbox}
+
+Alternatív módon: van olyan $\prodrule{qa}{p}$ szabály és van olyan $w \in T^*$ szó, amelyre \[u=\textbf{qa}w \land v = \textbf{p}w.\] A vastag kijelölés nem azt jelenti, hogy vektorok lennének, hanem hogy szemléletesebben kiemeljem a ``csere'' helyét.
+
+A \textbf{közvetett redukció}t gyakran csak egyszerűen \textbf{redukció}nak nevezzük.
+
+\begin{tcolorbox}
+	\begin{definition}[Redukció vagy közvetett redukció]
+		Az $A = (Q,T,\delta,q_0,F)$ véges automata az $u \in QT^*$ konfigurációt a $v \in QT^*$ konfigurációra \textbf{redukálja}, ha
+		\begin{itemize}
+			\item ha $u = v$, vagy
+			\item ha $u \neq v$, akkor $\exists z \in QT^* : u \genword{A}{*} z \land z \genword{A}{} v$.
+		\end{itemize}
+		Jele: $u\genword{A}{*}v$.
+	\end{definition}
+\end{tcolorbox}
+
+Ahogy a grammatikáknál is, itt is értelmezzük az automata által elfogadott nyelvet. Figyeljük meg a szóhasználatot: az automata továbbra sem generálja, hanem elfogadja a szavakat (akceptív módon közelíti meg a szóproblémát).
+
+\begin{tcolorbox}
+	\begin{definition}[Automata által elfogadott nyelv]
+		Az $A = (Q,T,\delta,q_0,F)$ véges automata által elfogadott nyelv alatt az
+		\[ L(A) := \left\{ u \in T^* \setdivbar q_0 u \genword{A}{*} p \land p \in F \right\} \]
+		szavak halmazát értjük.
+	\end{definition}
+\end{tcolorbox}
+
+A definíció azt jelenti, hogy az automata a kezdőállapotból ($q_0$-ból) indulva végig olvasva az inputot
+elfogadóállapotba jut (azaz $p \in F$).
+
+\subsection{3-as típusú nyelvek kapcsolata a véges automatákkal}
+
+\begin{tcolorbox}
+	\begin{theorem}
+		Minden 3-as típusú $L$ nyelvhez megadható egy véges nemdeterminisztikus automata, és fordítva; minden nemdeterminisztikus automata 3-as típusú nyelvet ismer fel.
+		\[ \mathcal{L}_3 \subseteq \mathcal{L}_{VNDA} \text{ ~ és ~ } \mathcal{L}_{VNDA} \subseteq \mathcal{L}_3 \]
+	\end{theorem}
+\end{tcolorbox}
+
+\textbf{\textit{Bizonyítás}}. // Kidolgozni.
+
+\begin{tcolorbox}
+	\begin{theorem}
+		Minden $A=(Q,T,\delta,Q_0,F)$ nemdeterminisztikus automatához megadható egy
+		$A'=(Q',T,\delta',q_0',F')$ véges determinisztikus automata, hogy az általuk generált nyelvek ekvivalensek, azaz \[  \forall A=(Q,T,\delta,Q_0,F) , \exists A'=(Q',T,\delta',q_0',F') : L(A')=L(A). \]
+		\[ \mathcal{L}_{VNDA} \subseteq \mathcal{L}_{VDA} \]
+	\end{theorem}
+\end{tcolorbox}
+
+\textbf{\textit{Bizonyítás}}. // Kidolgozni.
+
+\begin{tcolorbox}
+	\begin{theorem}[Kleene tétele]
+		\[ \mathcal{L}_3 = \mathcal{L}_{reg} \]
+	\end{theorem}
+\end{tcolorbox}
+
+\textbf{\textit{Bizonyítás}}. // Kidolgozni.
+
+\subsection{Minimális véges determinisztikus automata}
+
+\begin{tcolorbox}
+	\begin{definition}[Minimális véges determinisztikus automata]
+		Az $A$ véges determinisztikus automata \textbf{minimális állapotszámú},
+		ha nincs olyan $A'$ véges determinisztikus automata, amely
+		ugyanazt a nyelvet ismeri fel, mint $A$, de $A'$ állapotainak száma
+		kisebb, mint $A$ állapotainak száma.
+		\[ \exists A'=(Q', T, \delta', q_0', F') \text{ véges det. autom.} : L(A') = L(A') \land |Q'| < |Q| \]
+	\end{definition}
+\end{tcolorbox}
+
+\begin{tcolorbox}
+	\begin{theorem}
+		Az $L$ reguláris nyelvet felismerő \textbf{minimális} véges determinisztikus automata az izomorfizmus erejéig \textbf{egyértelmű}.
+	\end{theorem}
+\end{tcolorbox}
+
+\textbf{\textit{Bizonyítás}}. // Kidolgozni.
+
+\begin{tcolorbox}
+	\begin{definition}[Elérhető állapot]
+		Az $A = (Q, T, \delta,q_0, F)$ véges determinisztikus automata
+		$q$ \textbf{állapot}át \textbf{elérhető}nek mondjuk,
+		ha \[ \exists u \in T^* : q_0 u \genword{A}{*} q. \]
+	\end{definition}
+\end{tcolorbox}
+
+\begin{tcolorbox}
+	\begin{definition}[Összefüggő VDA]
+		Az $A = (Q, T, \delta,q_0, F)$ véges determinisztikus automatát
+		\textbf{összefüggő}nek mondjuk, ha minden állapota elérhető a
+		kezdőállapotból.
+	\end{definition}
+\end{tcolorbox}
+
+\begin{tcolorbox}
+	\begin{definition}[Ekvivalens állapotok]
+		Legyen $A = (Q, T, \delta,q_0, F)$ egy VDA és $q, p \in Q$ állapotok.
+		Ekkor $q$ és $p$ \textbf{ekvivalens állapotok},
+		ha
+		\begin{gather*}
+			\forall u \in T^* \text{ szóra teljesül, hogy } qu \genword{A}{*} r \text{ és } pu \genword{A}{*} r' \text{ esetén } \\
+			r \in F \text{ akkor és csak akkor, ha } r' \in F.
+		\end{gather*}
+		Jele: \framebox{$q \sim p$} .
+	\end{definition}
+\end{tcolorbox}
+
+\begin{tcolorbox}
+	\begin{proposition}
+		Ha $q$ és $p$ ekvivalens, akkor $\prodrule{qa}{s}$ és $\prodrule{pa}{t}$
+		esetén $s$ és $t$ is ekvivalens állapotok $\forall a \in T$ betűre.
+	\end{proposition}
+\end{tcolorbox}
+
+\begin{tcolorbox}
+	\begin{definition}[$i$-ekvivalens állapotok]
+		Legyen $A = (Q, T, \delta,q_0, F)$ egy VDA és $q, p \in Q$ állapotok.
+		Az mondjuk, hogy $q$ és $p$ \textbf{$i$-ekvivalens állapotok}, ha 
+		\begin{gather*}
+			\forall u \in T^* \text{ szóra, ahol } \ell(u) \leq i \text{ teljesül, hogy  } \\
+			qu \genword{A}{*} r \text{ és } pu \genword{A}{*} r' \text{ esetén } r \in F\text{ akkor és csak akkor, ha } r' \in F.
+		\end{gather*}
+		Jele: \framebox{$q \sim ^i p$} vagy \framebox{$q \partition{i} p$} .
+	\end{definition}
+\end{tcolorbox}
+
+\begin{tcolorbox}
+	\begin{lemma}
+		\[ q \partition{i+1} p ~ \Longleftrightarrow ~ \forall a \in T , \prodrule{qa}{s} \land \prodrule{pa}{t} : s \partition{i} t. \]
+	\end{lemma}
+\end{tcolorbox}
+
+Szavakban: legfeljebb $i$ hosszú szavak esetén a két állapot nem megkülönböztethető.
+
+\iffalse
+
+\section{Feladatok}
+
+\subsection{Reguláris kifejezések}
+
+\begin{enumerate}
+	\item Mely alábbi szavakra illeszkednek az alábbi reguláris kifejezések? \\
+	Reguláris kifejezések: ””, a, ab, a|b, a*, a|b*, ab*, a*b, a*b, a*b*, a*|b*, (ab)* \\
+	Szavak: $\emptyword$, a, b, aa, ab, ba, aaa, aab, aba, abb, baa, bab, bba, bbb, aaaaaa, bbbbb, ababab, babab
+	\item  Mely szavakra illeszkedik az \texttt{a?} reguláris kifejezés? Írjuk fel a standard műveletek segítségével!
+	\item Mely szavakra illeszkedik az \texttt{a+} reguláris kifejezés? Írjuk fel a standard műveletek segítségével!
+	\item Mely szavakra illeszkedik az \texttt{[a-d]} reguláris kifejezés? Írjuk fel a standard műveletek segítségével!
+	\item Mely szavakra illeszkedik az \verb|[^a-z]| reguláris kifejezés? Kezdjük el felírni a standard műveletek
+	segítségével!
+	\item Adjon meg reguláris kifejezést a következő számformátumokhoz!
+	\begin{enumerate}
+		\item Decimális egész szám (legalább egy számjegy \texttt{0-9}-ig)
+		\item Olyan decimáis egész szám, amely több számjegy esetén nem kezdődhet nullával
+		\item Előjeles decimális egész szám (opcionális \texttt{+} vagy \texttt{–} az elején)
+		\item Decimális törtszám (tizedespont előtt legalább egy számjegy)
+	\end{enumerate}
+	\item Készítsen reguláris kifejezést a helyes \texttt{hh:mm} óraformátum ellenőrzésére, ahol a \texttt{hh} a \texttt{00..23}, míg az \texttt{mm} a \texttt{00..59} értékeket veheti fel!
+	\item Adjon meg reguláris kifejezést a következő azonosítókhoz! (Betűk alatt az angol ábécé kis- és nagybetűit, számjegyek alatt a decimális számjegyeket értjük.)
+	\begin{enumerate}
+		\item Betűvel kezdődik, számjeggyel, betűvel vagy \texttt{\_} jellel folytatódik
+		\item Szigorítás: az utolsó karakter nem lehet \texttt{\_}
+		\item További szigorítás: nem lehet egymás mellett két \texttt{\_}
+	\end{enumerate}
+	\item Adjon meg reguláris kifejezést a következő, trükkösebb azonosítókhoz!
+	\begin{enumerate}
+		\item Az első fele csak betűket illetve \texttt{\_} jelet tartalmazhat, második fele pedig csak számjegyeket
+		\item Szigorítás: Ha a betűkből álló rész legelső és legutolsó karaktere is \texttt{\_} akkor közte csak nagybetűk
+		szerepelhetnek, egyébként pedig csak kisbetűk
+		\item További szigorítás: Ha a számjegyekből álló rész első számjegye páros akkor utána még páros darab számjegy következhet, ha az első páratlan akkor pedig még páratlan darab.
+	\end{enumerate}
+	\item Adjon meg reguláris kifejezést a következő, furcsa azonosítókhoz! Az azonosító csak az \texttt{a}, \texttt{b}, \texttt{c} betűket tartalmazhatja (akár többször is, de nem kötelező mindegyiket), viszont a betűknek be kell tartania az \texttt{abc} sorrendet, azaz egy \texttt{a} előtt soha nem szerepelhet \texttt{b} vagy \texttt{c}, illetve egy \texttt{b} előtt nem szerepelhet \texttt{c}. \\
+	Helyes: \texttt{abc}, \texttt{aaabcc}, \texttt{ac}, \texttt{c} \\
+	Helytelen: \texttt{bac}, \texttt{abcb}, \texttt{bcbc}
+	\item Adjon meg reguláris kifejezést egysoros megjegyzésekhez, amely \texttt{//}-től a sor végéig tartanak!
+	\item Adjon meg reguláris kifejezést többsoros megjegyzésekhez, amelyek \texttt{/*}-tól \texttt{*/}-ig tartanak! \\
+	Helyes: \texttt{/**/}, \verb*|/*ab”+!%/=.*/|, \verb*|/******/|, \verb*|/*//////*/| \\
+	Helytelen: \verb*|abc|, \verb*|*|, \verb*|/|, \verb|/*, */|, \verb*|/*/|, \verb*|/*abc*/abc*/|
+	\item Adjon meg reguláris kifejezést sztring leírására! A sztringek idézőjellel kezdődnek és végződnek, a belsejükben tetszőleges karakterek szerepelhetnel az alábbiak betartásával:
+	\begin{enumerate}
+		\item Idézőjel nem állhat belül, kizárólag \verb*|text| után.
+		\item \verb*|\\| és \verb*|\”| szabályosak a sztring belsejében, más kombinációban \verb*|text| nem szerepelhet.
+		\item Példák: \verb*|"alma"|, \verb|"a \" egy idézőjel a sztringben”|, \\ \verb|"a \\ egy backslash a sztringben"|
+		\item Adjon meg reguláris kifejezést fehér szóközök (\textit{space}, \textit{tab} vagy \textit{sorvége}) nem üres sorozataira!
+	\end{enumerate}
+\end{enumerate}
+
+\subsection{3-as típusú nyelvtanok normálformája}
+
+Mai órán hasznos eszköz: \hyperlink{http://madebyevan.com/fsm/}{http://madebyevan.com/fsm/}
+\begin{enumerate}
+	\item tartalom...
+\end{enumerate}
+
+\subsection{Véges (nem) determinisztikus automaták}
+
+%Mai órán hasznos eszköz: \hyperlink{http://madebyevan.com/fsm/}{http://madebyevan.com/fsm/}
+\begin{enumerate}
+	\item tartalom...
+\end{enumerate}
+
+\fi
