@@ -12,4 +12,4 @@ A jegyzet NEM helyettesíti, csupán kiegészíti a hivatalos segédanyagokat. H
 ## Gyakorlatjegyzet
 
 - A _formális nyelvek_ témakörből minden fontos feladattípus le van fedve. 
-- A fordítóprogramok rész hiányzik.
+- A _fordítóprogramok_ rész hiányzik.
