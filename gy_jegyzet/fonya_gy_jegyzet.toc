@@ -1,0 +1,12 @@
+\select@language {hungarian} \contentsline {section}{\numberline {1}Formális nyelvek}{2}{section.1}%
+\select@language {hungarian} \contentsline {subsection}{\numberline {1.1}Nyelv lezártjának meghatározása (nem hivatalos módszer)}{2}{subsection.1.1}%
+\select@language {hungarian} \contentsline {subsection}{\numberline {1.2}Nyelvtan típusának meghatározása}{3}{subsection.1.2}%
+\select@language {hungarian} \contentsline {subsection}{\numberline {1.3}Szó levezetése}{4}{subsection.1.3}%
+\select@language {hungarian} \contentsline {subsection}{\numberline {1.4}Epszilon-mentesítés ($\varepsilon $-mentesítés)}{5}{subsection.1.4}%
+\select@language {hungarian} \contentsline {subsection}{\numberline {1.5}3-as normálformára hozás algoritmusa és automata előállítása}{7}{subsection.1.5}%
+\select@language {hungarian} \contentsline {subsubsection}{\numberline {1.5.1}3-as normálformára hozás algoritmusa}{7}{subsubsection.1.5.1}%
+\select@language {hungarian} \contentsline {subsubsection}{\numberline {1.5.2}Automata előállítása normálformából}{7}{subsubsection.1.5.2}%
+\select@language {hungarian} \contentsline {subsection}{\numberline {1.6}Véges nemdeterminisztikus automata determinisztikussá alakítása (VNDA $\to $ VDA)}{8}{subsection.1.6}%
+\select@language {hungarian} \contentsline {subsection}{\numberline {1.7}Véges determinisztikus automata (VDA) minimalizálása}{10}{subsection.1.7}%
+\select@language {hungarian} \contentsline {section}{\numberline {2}Fordítóprogramok}{12}{section.2}%
+\select@language {hungarian} \contentsline {subsection}{\numberline {2.1}title}{12}{subsection.2.1}%
